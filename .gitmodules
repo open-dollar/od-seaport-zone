@@ -4,3 +4,6 @@
 [submodule "seaport-types"]
 	path = seaport-types
 	url = https://github.com/ProjectOpenSea/seaport-types
+[submodule "lib/seaport-types"]
+	path = lib/seaport-types
+	url = https://github.com/ProjectOpenSea/seaport-types
