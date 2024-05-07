@@ -1,5 +1,6 @@
 @openzeppelin/=node_modules/@openzeppelin/contracts/
-
+@shipyard-core=lib/shipyard-core/
+@seaport-types=lib/seaport-types/
 @script/=script/
 @contracts/=src/contracts/
 @interfaces/=src/interfaces/

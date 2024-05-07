@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import {ZoneParameters, Schema} from 'seaport-types/src/lib/ConsiderationStructs.sol';
-import {ZoneInterface} from 'seaport-types/src/interfaces/ZoneInterface.sol';
-import {IERC7496} from 'shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol';
-import {SIP6Decoder} from 'shipyard-core/src/sips/lib/SIP6Decoder.sol';
-import {DynamicTraitsZoneErrors} from './lib/Errors.sol';
+import {ZoneParameters, Schema} from '@seaport-types/src/lib/ConsiderationStructs.sol';
+import {ZoneInterface} from '@seaport-types/src/interfaces/ZoneInterface.sol';
+import {IERC7496} from '@shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol';
+import {SIP6Decoder} from '@shipyard-core/src/sips/lib/SIP6Decoder.sol';
+import {Errors} from './lib/Errors.sol';
 import {TraitComparison} from './lib/Structs.sol';
 
 /**
@@ -14,7 +14,7 @@ import {TraitComparison} from './lib/Structs.sol';
  * @notice DynamicTraitsZone is an implementation of SIP-15. It verifies that the dynamic traits of an NFT
  *         have not changed between the time of order creation and the time of order fulfillment.
  */
-contract DynamicTraitsZone is ZoneInterface, DynamicTraitsZoneErrors {
+contract ODSeaportZone is ZoneInterface, Errors {
     using SIP6Decoder for bytes;
 
     /**

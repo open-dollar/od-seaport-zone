@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-interface DynamicTraitsZoneErrors {
+interface Errors {
     error InvalidZoneHash(bytes32 zoneHash, bytes32 keccak256ExtraData);
     error InvalidExtraData(bytes extraData);
     error UnsupportedSubstandard(uint256 substandardVersion);
