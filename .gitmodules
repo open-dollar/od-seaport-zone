@@ -10,3 +10,6 @@
 [submodule "lib/seaport-core"]
 	path = lib/seaport-core
 	url = https://github.com/ProjectOpensea/seaport-core
+[submodule "lib/seaport"]
+	path = lib/seaport
+	url = https://github.com/ProjectOpensea/seaport
