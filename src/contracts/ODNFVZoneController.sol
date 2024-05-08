@@ -7,9 +7,20 @@ import {ODNFVZoneControllerEventsAndErrors} from '../interfaces/ODNFVZoneControl
 
 import {ODNFVZoneEventsAndErrors} from '../interfaces/ODNFVZoneEventsAndErrors.sol';
 
+import {
+  AdvancedOrder,
+  CriteriaResolver,
+  Execution,
+  Fulfillment,
+  Order,
+  OrderComponents
+} from 'seaport-types/src/lib/ConsiderationStructs.sol';
+
+import {SeaportInterface} from 'seaport-types/src/interfaces/SeaportInterface.sol';
+
 /**
  * @title  ODNFVZoneController
- * @author cupOJoseph, BCLeFevre, stuckinaboot, stephankmin, MrDeadCe11
+ * @author MrDeadCe11, cupOJoseph, BCLeFevre, stuckinaboot, stephankmin,
  * @notice ODNFVZoneController enables deploying, pausing and executing
  *         orders on ODNFVZones. This deployer is designed to be owned
  *         by a gnosis safe, DAO, or trusted party.
@@ -79,6 +90,106 @@ contract ODNFVZoneController is ODNFVZoneControllerEventsAndErrors {
 
     // Emit an event signifying that the zone was created.
     emit ZoneCreated(derivedAddress, salt);
+  }
+
+  /**
+   * @notice Cancel Seaport orders on a given zone.
+   *
+   * @param odNFVZoneAddress The zone that manages the
+   * orders to be cancelled.
+   * @param seaportAddress      The Seaport address.
+   * @param orders              The orders to cancel.
+   */
+  function cancelOrders(
+    address odNFVZoneAddress,
+    SeaportInterface seaportAddress,
+    OrderComponents[] calldata orders
+  ) external {
+    // Ensure the caller is the owner.
+    if (msg.sender != _owner) {
+      revert CallerIsNotOwner();
+    }
+
+    // Create a zone object from the zone address.
+    ODNFVZone zone = ODNFVZone(odNFVZoneAddress);
+
+    // Call cancelOrders on the given zone.
+    zone.cancelOrders(seaportAddress, orders);
+  }
+
+  /**
+   * @notice Execute an arbitrary number of matched orders on a given zone.
+   *
+   * @param odNFVZoneAddress The zone that manages the orders
+   * to be cancelled.
+   * @param seaportAddress      The Seaport address.
+   * @param orders              The orders to match.
+   * @param fulfillments        An array of elements allocating offer
+   *                            components to consideration components.
+   *
+   * @return executions An array of elements indicating the sequence of
+   *                    transfers performed as part of matching the given
+   *                    orders.
+   */
+  function executeMatchOrders(
+    address odNFVZoneAddress,
+    SeaportInterface seaportAddress,
+    Order[] calldata orders,
+    Fulfillment[] calldata fulfillments
+  ) external payable returns (Execution[] memory executions) {
+    // Ensure the caller is the owner.
+    if (msg.sender != _owner) {
+      revert CallerIsNotOwner();
+    }
+
+    // Create a zone object from the zone address.
+    ODNFVZone zone = ODNFVZone(odNFVZoneAddress);
+
+    // Call executeMatchOrders on the given zone and return the sequence
+    // of transfers performed as part of matching the given orders.
+    executions = zone.executeMatchOrders{value: msg.value}(seaportAddress, orders, fulfillments);
+  }
+
+  /**
+   * @notice Execute an arbitrary number of matched advanced orders on a given
+   *         zone.
+   *
+   * @param odNFVZoneAddress The zone that manages the orders to be
+   *                            cancelled.
+   * @param seaportAddress      The Seaport address.
+   * @param orders              The orders to match.
+   * @param criteriaResolvers   An array where each element contains a
+   *                            reference to a specific order as well as that
+   *                            order's offer or consideration, a token
+   *                            identifier, and a proof that the supplied
+   *                            token identifier is contained in the
+   *                            order's merkle root.
+   * @param fulfillments        An array of elements allocating offer
+   *                            components to consideration components.
+   *
+   * @return executions An array of elements indicating the sequence of
+   *                    transfers performed as part of matching the given
+   *                    orders.
+   */
+  function executeMatchAdvancedOrders(
+    address odNFVZoneAddress,
+    SeaportInterface seaportAddress,
+    AdvancedOrder[] calldata orders,
+    CriteriaResolver[] calldata criteriaResolvers,
+    Fulfillment[] calldata fulfillments
+  ) external payable returns (Execution[] memory executions) {
+    // Ensure the caller is the owner.
+    if (msg.sender != _owner) {
+      revert CallerIsNotOwner();
+    }
+
+    // Create a zone object from the zone address.
+    ODNFVZone zone = ODNFVZone(odNFVZoneAddress);
+
+    // Call executeMatchOrders on the given zone and return the sequence
+    // of transfers performed as part of matching the given orders.
+    executions =
+      zone.executeMatchAdvancedOrders{value: msg.value}(seaportAddress, orders, criteriaResolvers, fulfillments);
   }
 
   /**

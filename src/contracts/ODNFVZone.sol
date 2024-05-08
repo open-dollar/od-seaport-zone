@@ -3,9 +3,20 @@ pragma solidity 0.8.24;
 
 import {ERC165} from '@openzeppelin/utils/introspection/ERC165.sol';
 import {ZoneParameters, Schema} from 'seaport-types/src/lib/ConsiderationStructs.sol';
-import {ZoneInterface} from 'seaport-types/src/interfaces/ZoneInterface.sol';
 import {IERC7496} from 'shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol';
 import {SIP6Decoder} from 'shipyard-core/src/sips/lib/SIP6Decoder.sol';
+import {ZoneInterface} from 'seaport-types/src/interfaces/ZoneInterface.sol';
+import {SeaportInterface} from 'seaport-types/src/interfaces/SeaportInterface.sol';
+
+import {
+  AdvancedOrder,
+  CriteriaResolver,
+  Execution,
+  Fulfillment,
+  Order,
+  OrderComponents
+} from 'seaport-types/src/lib/ConsiderationStructs.sol';
+
 import {ODNFVZoneEventsAndErrors} from '../interfaces/ODNFVZoneEventsAndErrors.sol';
 import {TraitComparison} from '../libraries/Structs.sol';
 import {ODNFVZoneInterface} from '../interfaces/ODNFVZoneInterface.sol';
@@ -16,7 +27,7 @@ import {ODNFVZoneInterface} from '../interfaces/ODNFVZoneInterface.sol';
  * @notice ODSeaportZone is an implementation of SIP-15. It verifies that the dynamic traits of an NFT
  *         have not changed between the time of order creation and the time of order fulfillment.
  */
-contract ODNFVZone is ERC165, ZoneInterface, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
+contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
   using SIP6Decoder for bytes;
 
   bool public isPaused;
@@ -88,9 +99,9 @@ contract ODNFVZone is ERC165, ZoneInterface, ODNFVZoneInterface, ODNFVZoneEvents
   }
 
   /**
-   * @notice Pause this contract, safely stopping orders from using
+   * @notice UnPause this contract, safely allowing orders to use
    *         the contract as a zone. Restricted orders with this address as a
-   *         zone will no longer be fulfillable.
+   *         zone will be fulfillable.
    */
   function unpause() external isController {
     // Emit an event signifying that the zone is unpaused.
@@ -105,7 +116,7 @@ contract ODNFVZone is ERC165, ZoneInterface, ODNFVZoneInterface, ODNFVZoneEvents
    *
    * @param operatorToAssign The address to assign as the operator.
    */
-  function assignOperator(address operatorToAssign) external isController {
+  function assignOperator(address operatorToAssign) external override isController {
     // Ensure the operator being assigned is not the null address.
     if (operatorToAssign == address(0)) {
       revert PauserCanNotBeSetAsZero();
@@ -116,6 +127,82 @@ contract ODNFVZone is ERC165, ZoneInterface, ODNFVZoneInterface, ODNFVZoneEvents
 
     // Emit an event indicating the operator has been updated.
     emit OperatorUpdated(operatorToAssign);
+  }
+
+  /**
+   * @notice Cancel an arbitrary number of orders that have agreed to use the
+   *         contract as their zone.
+   *
+   * @param seaport  The Seaport address.
+   * @param orders   The orders to cancel.
+   *
+   * @return cancelled A boolean indicating whether the supplied orders have
+   *                   been successfully cancelled.
+   */
+  function cancelOrders(
+    SeaportInterface seaport,
+    OrderComponents[] calldata orders
+  ) external override isOperator returns (bool cancelled) {
+    // Call cancel on Seaport and return its boolean value.
+    cancelled = seaport.cancel(orders);
+  }
+
+  /**
+   * @notice Execute an arbitrary number of matched advanced orders,
+   *         each with an arbitrary number of items for offer and
+   *         consideration along with a set of fulfillments allocating
+   *         offer components to consideration components. Note that this call
+   *         will revert if excess native tokens are returned by Seaport.
+   *
+   * @param seaport           The Seaport address.
+   * @param orders            The orders to match.
+   * @param criteriaResolvers An array where each element contains a reference
+   *                          to a specific order as well as that order's
+   *                          offer or consideration, a token identifier, and
+   *                          a proof that the supplied token identifier is
+   *                          contained in the order's merkle root.
+   * @param fulfillments      An array of elements allocating offer components
+   *                          to consideration components.
+   *
+   * @return executions An array of elements indicating the sequence of
+   *                    transfers performed as part of matching the given
+   *                    orders.
+   */
+  function executeMatchAdvancedOrders(
+    SeaportInterface seaport,
+    AdvancedOrder[] calldata orders,
+    CriteriaResolver[] calldata criteriaResolvers,
+    Fulfillment[] calldata fulfillments
+  ) external payable override isOperator isNotPaused returns (Execution[] memory executions) {
+    // Call matchAdvancedOrders on Seaport and return the sequence of
+    // transfers performed as part of matching the given orders.
+    executions = seaport.matchAdvancedOrders{value: msg.value}(orders, criteriaResolvers, fulfillments, msg.sender);
+  }
+
+  /**
+   * @notice Execute an arbitrary number of matched orders, each with
+   *         an arbitrary number of items for offer and consideration
+   *         along with a set of fulfillments allocating offer components
+   *         to consideration components. Note that this call will revert if
+   *         excess native tokens are returned by Seaport.
+   *
+   * @param seaport      The Seaport address.
+   * @param orders       The orders to match.
+   * @param fulfillments An array of elements allocating offer components
+   *                     to consideration components.
+   *
+   * @return executions An array of elements indicating the sequence of
+   *                    transfers performed as part of matching the given
+   *                    orders.
+   */
+  function executeMatchOrders(
+    SeaportInterface seaport,
+    Order[] calldata orders,
+    Fulfillment[] calldata fulfillments
+  ) external payable override isOperator isNotPaused returns (Execution[] memory executions) {
+    // Call matchOrders on Seaport and return the sequence of transfers
+    // performed as part of matching the given orders.
+    executions = seaport.matchOrders{value: msg.value}(orders, fulfillments);
   }
 
   /**
@@ -285,7 +372,7 @@ contract ODNFVZone is ERC165, ZoneInterface, ODNFVZoneInterface, ODNFVZoneEvents
    */
   function getSeaportMetadata() external pure returns (string memory name, Schema[] memory schemas) {
     schemas = new Schema[](1);
-    schemas[0].id = 3003; //todo figure out the correct sip proposal id for sip6 decoding/encoding
+    schemas[0].id = 3003; // todo figure out the correct sip proposal id for sip6 decoding/encoding
     schemas[0].metadata = new bytes(0);
 
     return ('ODNFVZone', schemas);
