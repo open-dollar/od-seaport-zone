@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity   0.8.24;
 
 import {ZoneParameters, Schema} from 'seaport-types/src/lib/ConsiderationStructs.sol';
 import {ZoneInterface} from 'seaport-types/src/interfaces/ZoneInterface.sol';
 import {IERC7496} from 'shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol';
 import {SIP6Decoder} from 'shipyard-core/src/sips/lib/SIP6Decoder.sol';
-import {NFVZoneEventsAndErrors} from './lib/NFVZoneEventsAndErrors.sol';
-import {TraitComparison} from './lib/Structs.sol';
-import { ERC165 } from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import {NFVZoneEventsAndErrors} from './library/NFVZoneEventsAndErrors.sol';
+import {TraitComparison} from './library/Structs.sol';
+import { ERC165 } from '@openzeppelin/utils/introspection/ERC165.sol';
 
 /**
  * @title  ODSeaportZone
