@@ -14,10 +14,10 @@ import {TraitComparison} from './lib/Structs.sol';
  * @notice ODSeaportZone is an implementation of SIP-15. It verifies that the dynamic traits of an NFT
  *         have not changed between the time of order creation and the time of order fulfillment.
  */
-contract ODSeaportZone is ZoneInterface, Errors {
+contract OpenDollarNFVZone is ZoneInterface, Errors {
   using SIP6Decoder for bytes;
 
-  function authorizeOrder(ZoneParameters calldata zoneParameters) external returns (bytes4 authorizedOrderMagicValue) {}
+
   /**
    * @dev Validates an order.
    *
@@ -49,6 +49,10 @@ contract ODSeaportZone is ZoneInterface, Errors {
     _validateSubstandard(zoneParameters, substandardVersion, extraData);
 
     return this.validateOrder.selector;
+  }
+
+    function authorizeOrder(ZoneParameters calldata zoneParameters) external returns (bytes4 authorizedOrderMagicValue) {
+    return this.authorizeOrder.selector;
   }
 
   function _validateSubstandard(
@@ -170,7 +174,17 @@ contract ODSeaportZone is ZoneInterface, Errors {
    * @return name The name of the zone.
    * @return schemas The schemas that the zone implements.
    */
-  function getSeaportMetadata() external view returns (string memory name, Schema[] memory schemas) {}
+  function getSeaportMetadata() external view returns (string memory name, Schema[] memory schemas) {
+            schemas = new Schema[](1);
+        schemas[0].id = 3003; //todo figure out the correct sip proposal id for sip6 decoding/encoding
+        schemas[0].metadata = new bytes(0);
 
-  function supportsInterface(bytes4 interfaceId) external view override returns (bool) {}
+        return ('OpenDollarNFVZone', schemas);
+  }
+
+  function supportsInterface(bytes4 interfaceId) external view override returns (bool) {
+            return
+            interfaceId == type(ZoneInterface).interfaceId ||
+            super.supportsInterface(interfaceId);
+  }
 }
