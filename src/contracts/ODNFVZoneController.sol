@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity 0.8.24;
 
 import {ODNFVZone} from './ODNFVZone.sol';
 
@@ -9,7 +9,7 @@ import {ODNFVZoneEventsAndErrors} from '../interfaces/ODNFVZoneEventsAndErrors.s
 
 /**
  * @title  ODNFVZoneController
- * @author cupOJoseph, BCLeFevre, stuckinaboot, stephankmin, Mr
+ * @author cupOJoseph, BCLeFevre, stuckinaboot, stephankmin, MrDeadCe11
  * @notice ODNFVZoneController enables deploying, pausing and executing
  *         orders on ODNFVZones. This deployer is designed to be owned
  *         by a gnosis safe, DAO, or trusted party.

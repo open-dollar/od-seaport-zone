@@ -13,11 +13,8 @@ import {
 } from 'seaport-types/src/lib/ConsiderationStructs.sol';
 
 /**
- * @title  PausableZone
- * @author cupOJoseph, BCLeFevre, ryanio
- * @notice PausableZone is a simple zone implementation that approves every
- *         order. It can be self-destructed by its controller to pause
- *         restricted orders that have it set as their zone.
+ * @title  ODNFVZoneInterface
+ * @author cupOJoseph, BCLeFevre, ryanio, MrDeadCe11
  */
 interface ODNFVZoneInterface {
   /**
