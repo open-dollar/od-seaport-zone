@@ -5,18 +5,75 @@ import {ZoneParameters, Schema} from 'seaport-types/src/lib/ConsiderationStructs
 import {ZoneInterface} from 'seaport-types/src/interfaces/ZoneInterface.sol';
 import {IERC7496} from 'shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol';
 import {SIP6Decoder} from 'shipyard-core/src/sips/lib/SIP6Decoder.sol';
-import {Errors} from './lib/Errors.sol';
+import {NFVZoneEventsAndErrors} from './lib/NFVZoneEventsAndErrors.sol';
 import {TraitComparison} from './lib/Structs.sol';
+import { ERC165 } from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 /**
  * @title  ODSeaportZone
- * @author stephankmin
+ * @author MrDeadce11 & stephankmin
  * @notice ODSeaportZone is an implementation of SIP-15. It verifies that the dynamic traits of an NFT
  *         have not changed between the time of order creation and the time of order fulfillment.
  */
-contract OpenDollarNFVZone is ZoneInterface, Errors {
+contract OpenDollarNFVZone is ERC165, ZoneInterface, NFVZoneEventsAndErrors {
   using SIP6Decoder for bytes;
 
+  bool public isPaused;
+  address private _controller;
+      // Set an operator that can instruct the zone to cancel or execute orders.
+    address public operator;
+
+
+    /**
+     * @notice Set the deployer as the controller of the zone.
+     */
+    constructor() {
+        // Set the controller to the deployer.
+        _controller = msg.sender;
+
+        // Emit an event signifying that the zone is unpaused.
+        emit Unpaused();
+    }
+
+
+    /**
+     * @dev Ensure that the caller is either the operator or controller.
+     */
+    modifier isOperator() {
+        // Ensure that the caller is either the operator or the controller.
+        if (msg.sender != operator && msg.sender != _controller) {
+            revert InvalidOperator();
+        }
+
+        // Continue with function execution.
+        _;
+    }
+
+    /**
+     * @dev Ensure that the zone is not paused.
+     */
+    modifier isNotPaused() {
+        // Ensure that the zone is not paused.
+        if (isPaused) {
+            revert ZoneIsPaused();
+        }
+
+        // Continue with function execution.
+        _;
+    }
+
+    /**
+     * @notice Pause this contract, safely stopping orders from using
+     *         the contract as a zone. Restricted orders with this address as a
+     *         zone will no longer be fulfillable.
+     */
+    function pause() external override isController {
+        // Emit an event signifying that the zone is paused.
+        emit Paused();
+
+        // Pause the zone.
+        isPaused = true;
+    }
 
   /**
    * @dev Validates an order.
@@ -51,7 +108,7 @@ contract OpenDollarNFVZone is ZoneInterface, Errors {
     return this.validateOrder.selector;
   }
 
-    function authorizeOrder(ZoneParameters calldata zoneParameters) external returns (bytes4 authorizedOrderMagicValue) {
+  function authorizeOrder(ZoneParameters calldata zoneParameters) external returns (bytes4 authorizedOrderMagicValue) {
     return this.authorizeOrder.selector;
   }
 
@@ -88,7 +145,7 @@ contract OpenDollarNFVZone is ZoneInterface, Errors {
     } else if (substandardVersion == 1) {
       // Decode comparisonEnum, expectedTraitValue, and traitKey from extraData
       (comparisonEnum, traitKey, expectedTraitValue) = abi.decode(extraData[1:], (uint8, bytes32, bytes32));
-
+      //TODO do we want to check multiple considerations?
       // Get the token address from the first offer item
       token = zoneParameters.offer[0].token;
 
@@ -106,6 +163,8 @@ contract OpenDollarNFVZone is ZoneInterface, Errors {
       });
 
       _checkTraits(traitComparisons);
+
+      emit TraitsVerified(traitComparisons);
     } else {
       revert UnsupportedSubstandard(substandardVersion);
     }
