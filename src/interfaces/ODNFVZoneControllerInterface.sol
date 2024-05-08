@@ -14,7 +14,7 @@ import {SeaportInterface} from 'seaport-types/src/interfaces/SeaportInterface.so
 
 interface ODNFVZoneControllerInterface {
   /**
-   * @notice Deploy a PausableZone to a precomputed address.
+   * @notice Deploy a ODNFVZone to a precomputed address.
    *
    * @param salt The salt to be used to derive the zone address
    *
@@ -34,13 +34,13 @@ interface ODNFVZoneControllerInterface {
   /**
    * @notice Cancel Seaport offers on a given zone.
    *
-   * @param pausableZoneAddress The zone that manages the orders to be
+   * @param odNFVZoneAddress The zone that manages the orders to be
    *                            cancelled.
    * @param seaportAddress      The Seaport address.
    * @param orders              The orders to cancel.
    */
   function cancelOrders(
-    address pausableZoneAddress,
+    address odNFVZoneAddress,
     SeaportInterface seaportAddress,
     OrderComponents[] calldata orders
   ) external;
@@ -48,7 +48,7 @@ interface ODNFVZoneControllerInterface {
   /**
    * @notice Execute an arbitrary number of matched orders on a given zone.
    *
-   * @param pausableZoneAddress The zone that manages the orders to be
+   * @param odNFVZoneAddress The zone that manages the orders to be
    *                            cancelled.
    * @param seaportAddress      The Seaport address.
    * @param orders              The orders to match.
@@ -60,7 +60,7 @@ interface ODNFVZoneControllerInterface {
    *                    orders.
    */
   function executeMatchOrders(
-    address pausableZoneAddress,
+    address odNFVZoneAddress,
     SeaportInterface seaportAddress,
     Order[] calldata orders,
     Fulfillment[] calldata fulfillments
@@ -70,7 +70,7 @@ interface ODNFVZoneControllerInterface {
    * @notice Execute an arbitrary number of matched advanced orders on a
    *         given zone.
    *
-   * @param pausableZoneAddress The zone that manages the orders to be
+   * @param odNFVZoneAddress The zone that manages the orders to be
    *                            cancelled.
    * @param seaportAddress      The Seaport address.
    * @param orders              The orders to match.
@@ -88,7 +88,7 @@ interface ODNFVZoneControllerInterface {
    *                    orders.
    */
   function executeMatchAdvancedOrders(
-    address pausableZoneAddress,
+    address odNFVZoneAddress,
     SeaportInterface seaportAddress,
     AdvancedOrder[] calldata orders,
     CriteriaResolver[] calldata criteriaResolvers,
@@ -130,10 +130,10 @@ interface ODNFVZoneControllerInterface {
    * @notice Assign the given address with the ability to operate the
    *         given zone.
    *
-   * @param pausableZoneAddress The zone address to assign operator role.
+   * @param odNFVZoneAddress The zone address to assign operator role.
    * @param operatorToAssign    The address to assign as operator.
    */
-  function assignOperator(address pausableZoneAddress, address operatorToAssign) external;
+  function assignOperator(address odNFVZoneAddress, address operatorToAssign) external;
 
   /**
    * @notice An external view function that returns the owner.
