@@ -94,7 +94,7 @@ contract ODNFVZone is ERC165, ZoneInterface, ODNFVZoneInterface, ODNFVZoneEvents
    */
   function unpause() external isController {
     // Emit an event signifying that the zone is unpaused.
-    emit Paused();
+    emit Unpaused();
 
     // Pause the zone.
     isPaused = false;
