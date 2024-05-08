@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import {TraitComparison} from './Structs.sol';
+import {TraitComparison} from '../libraries/Structs.sol';
 
 interface ODNFVZoneEventsAndErrors {
   ///////////////////////// Trait Comparison///////////////////////////

@@ -7,7 +7,7 @@ import {ZoneInterface} from 'seaport-types/src/interfaces/ZoneInterface.sol';
 import {IERC7496} from 'shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol';
 import {SIP6Decoder} from 'shipyard-core/src/sips/lib/SIP6Decoder.sol';
 import {ODNFVZoneEventsAndErrors} from '../interfaces/ODNFVZoneEventsAndErrors.sol';
-import {TraitComparison} from '../interfaces/Structs.sol';
+import {TraitComparison} from '../libraries/Structs.sol';
 import {ODNFVZoneInterface} from '../interfaces/ODNFVZoneInterface.sol';
 
 /**
