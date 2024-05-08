@@ -3,9 +3,9 @@ pragma solidity ^0.8.24;
 
 import {ODNFVZone} from './ODNFVZone.sol';
 
-import {ODNFVZoneControllerEventsAndErrors} from './interfaces/ODNFVZoneControllerEventsAndErrors.sol';
+import {ODNFVZoneControllerEventsAndErrors} from '../interfaces/ODNFVZoneControllerEventsAndErrors.sol';
 
-import {ODNFVZoneEventsAndErrors} from './interfaces/ODNFVZoneEventsAndErrors.sol';
+import {ODNFVZoneEventsAndErrors} from '../interfaces/ODNFVZoneEventsAndErrors.sol';
 
 /**
  * @title  ODNFVZoneController
