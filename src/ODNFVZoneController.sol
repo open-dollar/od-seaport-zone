@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import {ODNFVZone} from './ODNFVZone.sol';
 
-import {ODNFVZoneInterface} from './interfaces/ODNFVZoneInterface.sol';
+import {ODNFVZoneControllerEventsAndErrors} from './interfaces/ODNFVZoneControllerEventsAndErrors.sol';
 
 import {ODNFVZoneEventsAndErrors} from './interfaces/ODNFVZoneEventsAndErrors.sol';
 
@@ -14,7 +14,7 @@ import {ODNFVZoneEventsAndErrors} from './interfaces/ODNFVZoneEventsAndErrors.so
  *         orders on ODNFVZones. This deployer is designed to be owned
  *         by a gnosis safe, DAO, or trusted party.
  */
-contract ODNFVZoneController is ODNFVZoneEventsAndErrors {
+contract ODNFVZoneController is ODNFVZoneControllerEventsAndErrors {
   // Set the owner that can deploy, pause and execute orders on ODNFVZones.
   address internal _owner;
 
