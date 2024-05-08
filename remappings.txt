@@ -1,4 +1,4 @@
-@openzeppelin/=node_modules/@openzeppelin/contracts/
+@openzeppelin/=lib/openzeppelin-contracts/contracts/
 seaport-types/=lib/seaport-types/
 shipyard-core/=lib/shipyard-core/
 @script/=script/
