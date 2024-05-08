@@ -7,7 +7,7 @@ multiline_func_header = 'params_first'
 quote_style = 'single'
 number_underscore = 'thousands'
 wrap_comments = false
-solc = 
+solc = "0.8.24"
 
 [profile.default]
 auto_detect_solc = true
