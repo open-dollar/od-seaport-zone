@@ -24,7 +24,7 @@ contract Vault721Adapter is IERC7496 {
    * @dev get NFV trait
    */
   function getTraitValue(uint256 _tokenId, bytes32 _traitKey) public view returns (bytes32) {
-    return _getTraitValues(_tokenId, _traitKey);
+    return _getTraitValue(_tokenId, _traitKey);
   }
 
   /**
@@ -58,7 +58,7 @@ contract Vault721Adapter is IERC7496 {
    * @dev get NFVState from Vault721
    * @notice return values are not hashed to enable enforceable condition in zone
    */
-  function _getTraitValues(uint256 _tokenId, bytes32 _traitKey) internal view returns (bytes32) {
+  function _getTraitValue(uint256 _tokenId, bytes32 _traitKey) internal view returns (bytes32) {
     IVault721.NFVState memory _nfvState = vault721.getNfvState(_tokenId);
     if (_traitKey == COLLATERAL) return bytes32(_nfvState.collateral);
     if (_traitKey == DEBT) return bytes32(_nfvState.debt);
