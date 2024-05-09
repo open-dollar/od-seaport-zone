@@ -23,7 +23,7 @@ contract Vault721Adapter is IERC7496 {
   /**
    * @dev get NFV trait
    */
-  function getTraitValue(uint256 _tokenId, bytes32 _traitKey) external view returns (bytes32) {
+  function getTraitValue(uint256 _tokenId, bytes32 _traitKey) public view returns (bytes32) {
     (bytes32 _collateral, bytes32 _debt) = _getTraitValues(_tokenId);
     if (_traitKey == COLLATERAL) return _collateral;
     if (_traitKey == DEBT) return _debt;
@@ -33,21 +33,14 @@ contract Vault721Adapter is IERC7496 {
   /**
    * @dev get NFV traits
    */
-  function getTraitValues(
-    uint256 _tokenId,
-    bytes32[] calldata _traitKeys
-  ) external view returns (bytes32[] memory _traitValues) {
-    (bytes32 _collateral, bytes32 _debt) = _getTraitValues(_tokenId);
-    _traitValues = new bytes32[](2);
-    if (_traitKeys[0] == COLLATERAL && _traitKeys[1] == DEBT) {
-      _traitValues[0] = _collateral;
-      _traitValues[1] = _debt;
-    } else if (_traitKeys[0] == DEBT && _traitKeys[1] == COLLATERAL) {
-      _traitValues[0] = _debt;
-      _traitValues[1] = _collateral;
-    } else {
-      revert UnknownTraitKeys();
+  function getTraitValues(uint256 _tokenId, bytes32[] calldata _traitKeys) external view returns (bytes32[] memory) {
+    uint256 l = _traitKeys.length;
+    bytes32[] memory _traitValues = new bytes32[](l);
+
+    for (uint256 i; i < l; i++) {
+      _traitValues[i] = getTraitValue(_tokenId, _traitKeys[i]);
     }
+    return _traitValues;
   }
 
   /**
