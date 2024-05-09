@@ -7,7 +7,7 @@ import {IVault721} from '../interfaces/IVault721.sol';
 /**
  * @notice IERC7496 events are never emitted since NFVState is tracked in Vault721
  */
-abstract contract Vault721Adapter is IERC7496 {
+contract Vault721Adapter is IERC7496 {
   bytes32 public constant COLLATERAL = keccak256('COLLATERAL');
   bytes32 public constant DEBT = keccak256('DEBT');
 
@@ -27,6 +27,7 @@ abstract contract Vault721Adapter is IERC7496 {
     (bytes32 _collateral, bytes32 _debt) = _getTraitValues(_tokenId);
     if (_traitKey == COLLATERAL) return _collateral;
     if (_traitKey == DEBT) return _debt;
+    else revert UnknownTraitKeys();
   }
 
   /**
