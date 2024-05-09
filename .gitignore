@@ -31,3 +31,6 @@ docs/
 
 # Dotenv file
 .env
+
+# Forge 
+lib/
