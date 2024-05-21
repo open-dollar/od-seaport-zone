@@ -38,9 +38,24 @@ contract Base is Test {
 
 contract Unit_Vault721Adapter_SetUp is Base {
   function test_initialize() public {
+    assertTrue(adapter.vault721() == vault721);
+  }
+
+  function test_constants() public {
     assertTrue(adapter.COLLATERAL() == C);
     assertTrue(adapter.DEBT() == D);
-    assertTrue(adapter.vault721() == vault721);
+    assertEq(
+      bytes32(
+        bytes(
+          string.concat(adapter.JSON_OPEN(), adapter.JSON_DISPLAYNAME(), adapter.JSON_DATATYPE(), adapter.JSON_CLOSE())
+        )
+      ),
+      bytes32(
+        bytes(
+          '{"traits":{"":{"displayName":"","dataType":{"type": "string","minLength":1},"validateOnSale": "requireEq"}}}'
+        )
+      )
+    );
   }
 
   function test_mockCall(uint256 _tokenId, nfvValue memory _nfvValue) public nfvValues(_nfvValue) {
