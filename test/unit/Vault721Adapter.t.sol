@@ -130,8 +130,16 @@ contract Unit_Vault721Adapter is Base {
   }
 
   function test_getTraitMetadataURI() public {
-    bytes32 _uri = bytes32(abi.encode(adapter.getTraitMetadataURI()));
-    assertEq(_uri, bytes32(abi.encode('?')));
+    string memory _uri = adapter.getTraitMetadataURI();
+    emit log_named_string('Metadata URI', _uri);
+    assertEq(
+      bytes32(bytes(_uri)),
+      bytes32(
+        bytes(
+          'data:application/json;base64,eyJ0cmFpdHMiOnsiY29sbGF0ZXJhbCI6eyJkaXNwbGF5TmFtZSI6IkNvbGxhdGVyYWwiLCJkYXRhVHlwZSI6eyJ0eXBlIjogInN0cmluZyIsIm1pbkxlbmd0aCI6MX0sInZhbGlkYXRlT25TYWxlIjogInJlcXVpcmVFcSJ9LCJkZWJ0Ijp7ImRpc3BsYXlOYW1lIjoiRGVidCIsImRhdGFUeXBlIjp7InR5cGUiOiAic3RyaW5nIiwibWluTGVuZ3RoIjoxfSwidmFsaWRhdGVPblNhbGUiOiAicmVxdWlyZUVxIn19fQ=='
+        )
+      )
+    );
   }
 
   function test_setTraitValues_Revert(uint256 _tokenId, bytes32 _traitKey, bytes32 _traitValue) public {

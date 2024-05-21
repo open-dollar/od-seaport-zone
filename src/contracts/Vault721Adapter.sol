@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.24;
 
+import {Base64} from '@openzeppelin/utils/Base64.sol';
 import {IERC7496} from 'shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol';
-import {IVault721} from '../interfaces/IVault721.sol';
+import {IVault721} from 'src/interfaces/IVault721.sol';
 
 /**
  * @notice IERC7496 events are never emitted since NFVState is tracked in Vault721
@@ -10,6 +11,10 @@ import {IVault721} from '../interfaces/IVault721.sol';
 contract Vault721Adapter is IERC7496 {
   bytes32 public constant COLLATERAL = keccak256('COLLATERAL');
   bytes32 public constant DEBT = keccak256('DEBT');
+  string public constant JSON_OPEN = '{"traits":{"';
+  string public constant JSON_DISPLAYNAME = '":{"displayName":"';
+  string public constant JSON_DATATYPE = '","dataType":{"type": "string","minLength":1},"validateOnSale": "requireEq"}';
+  string public constant JSON_CLOSE = '}}';
 
   IVault721 public vault721;
 
@@ -41,10 +46,11 @@ contract Vault721Adapter is IERC7496 {
   }
 
   /**
-   * @dev ???
+   * @dev return onchain data uri of trait details
    */
   function getTraitMetadataURI() external view returns (string memory _uri) {
-    _uri = '?';
+    string memory _json = _formatJsonMetaData();
+    _uri = string.concat('data:application/json;base64,', Base64.encode(bytes(_json)));
   }
 
   /**
@@ -63,5 +69,20 @@ contract Vault721Adapter is IERC7496 {
     if (_traitKey == COLLATERAL) return bytes32(_nfvState.collateral);
     if (_traitKey == DEBT) return bytes32(_nfvState.debt);
     else revert UnknownTraitKeys();
+  }
+
+  function _formatJsonMetaData() internal pure returns (string memory _json) {
+    _json = string.concat(
+      JSON_OPEN,
+      'collateral',
+      JSON_DISPLAYNAME,
+      'Collateral',
+      JSON_DATATYPE,
+      ',"debt',
+      JSON_DISPLAYNAME,
+      'Debt',
+      JSON_DATATYPE,
+      JSON_CLOSE
+    );
   }
 }
