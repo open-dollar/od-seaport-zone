@@ -144,6 +144,13 @@ contract Unit_Vault721Adapter is Base {
     );
   }
 
+  /**
+   * @notice encoded json data that OpenSea uses to enforce rules about traits:
+   *
+   * {"traits":{"collateral":{"displayName":"Collateral","dataType":{"type": "string","minLength":1},"validateOnSale": "requireEq"},"debt":{"displayName":"Debt","dataType":{"type": "string","minLength":1},"validateOnSale": "requireEq"}}}
+   * to base64
+   * eyJ0cmFpdHMiOnsiY29sbGF0ZXJhbCI6eyJkaXNwbGF5TmFtZSI6IkNvbGxhdGVyYWwiLCJkYXRhVHlwZSI6eyJ0eXBlIjogInN0cmluZyIsIm1pbkxlbmd0aCI6MX0sInZhbGlkYXRlT25TYWxlIjogInJlcXVpcmVFcSJ9LCJkZWJ0Ijp7ImRpc3BsYXlOYW1lIjoiRGVidCIsImRhdGFUeXBlIjp7InR5cGUiOiAic3RyaW5nIiwibWluTGVuZ3RoIjoxfSwidmFsaWRhdGVPblNhbGUiOiAicmVxdWlyZUVxIn19fQ==
+   */
   function test_getTraitMetadataURI() public {
     string memory _uri = adapter.getTraitMetadataURI();
     emit log_named_string('Metadata URI', _uri);
