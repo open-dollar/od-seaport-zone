@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.24;
+pragma solidity 0.8.20;
 
 import {Test, console} from 'forge-std/Test.sol';
 import {Vault721Adapter} from 'src/contracts/Vault721Adapter.sol';
-import {IVault721} from 'src/interfaces/IVault721.sol';
+import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';
 
 struct nfvValue {
   uint256 collateral;
