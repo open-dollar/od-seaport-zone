@@ -8,7 +8,7 @@ import {
 import {ERC165} from '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import {ReceivedItem, Schema, SpentItem, ZoneParameters} from 'seaport-types/src/lib/ConsiderationStructs.sol';
 
-import {ItemType} from 'seaport-types/src/lib/ConsiderationEnums.sol';
+import {ItemType, OrderType, Side} from 'seaport-sol/src/SeaportEnums.sol';
 
 import {ContractOffererInterface} from 'seaport-types/src/interfaces/ContractOffererInterface.sol';
 
@@ -20,7 +20,7 @@ import {ODNFVZoneInterface} from '../src/interfaces/ODNFVZoneInterface.sol';
 import {SetUp} from './SetUp.sol';
 import 'forge-std/console2.sol';
 
-contract ODNFVZoneTest is Test, SetUp {
+contract ODNFVZoneTest is SetUp {
   function testFork() public {
     (string memory version, bytes32 domainSeparator, address conduitController) = seaport.information();
     console2.log(conduitController);
