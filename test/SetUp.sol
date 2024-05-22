@@ -28,8 +28,8 @@ import {ZoneInterface} from 'seaport-types/src/interfaces/ZoneInterface.sol';
 import {Test} from 'forge-std/Test.sol';
 import {ODNFVZone} from '../src/contracts/ODNFVZone.sol';
 import {ODNFVZoneInterface} from '../src/interfaces/ODNFVZoneInterface.sol';
-import {ODNFVControllerInterface} from '../src/interfaces/ODNFVZoneControllerInterface.sol';
-import {ODNFVController} from '../src/contracts/ODNFVZoneController.sol';
+import {ODNFVZoneControllerInterface} from '../src/interfaces/ODNFVZoneControllerInterface.sol';
+import {ODNFVZoneController} from '../src/contracts/ODNFVZoneController.sol';
 import {Seaport as CoreSeaport} from 'seaport-core/Seaport.sol';
 
 import 'forge-std/console2.sol';
@@ -39,7 +39,7 @@ contract SetUp is Test {
   address payable public seaportMainnetAddress = payable(address(0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC)); //seaport 1.5 on arb mainnet
   CoreSeaport public seaport;
   ODNFVZoneInterface public zone;
-  ODNFVControllerInterface public zoneController;
+  ODNFVZoneController public zoneController;
 
   function setUp() public {
     //create arb mainnet fork;
@@ -47,8 +47,8 @@ contract SetUp is Test {
     vm.deal(deployer, 1000 ether);
     vm.startPrank(deployer);
     seaport = CoreSeaport(seaportMainnetAddress);
-    zoneController = new ODNFVController(deployer);
-    zone = zoneController.createZone(keccak256(abi.encode('salt')));
+    zoneController = new ODNFVZoneController(deployer);
+    zone = ODNFVZoneInterface(zoneController.createZone(keccak256(abi.encode('salt'))));
   }
 
   function createOffer() public {}
