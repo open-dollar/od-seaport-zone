@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.24;
+pragma solidity 0.8.20;
 
 import {IERC7496} from 'shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol';
-import {IVault721} from '../interfaces/IVault721.sol';
+import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';
 
 /**
  * @notice IERC7496 events are never emitted since NFVState is tracked in Vault721
