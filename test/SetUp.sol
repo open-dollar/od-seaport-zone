@@ -18,7 +18,7 @@ import {Test} from 'forge-std/Test.sol';
 import {ODNFVZone} from '../src/contracts/ODNFVZone.sol';
 import {ODNFVZoneInterface} from '../src/interfaces/ODNFVZoneInterface.sol';
 
-import {Seaport as CoreSeaport} from 'seaport-core/src/Seaport.sol';
+import {Seaport as CoreSeaport} from 'seaport-core/Seaport.sol';
 import 'forge-std/console2.sol';
 
 contract SetUp is Test {
