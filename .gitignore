@@ -9,6 +9,7 @@ cache/
 out/
 
 # Foundry files
+lib/*
 cache
 out
 out-via-ir
