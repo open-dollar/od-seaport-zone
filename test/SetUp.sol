@@ -61,7 +61,7 @@ contract SetUp is BaseTest {
   using AdvancedOrderLib for AdvancedOrder;
   using AdvancedOrderLib for AdvancedOrder[];
 
-  address deployer = address(0xdeadce11);
+  address public deployer = address(0xdeadce11);
   address payable public seaportMainnetAddress = payable(address(0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC)); //seaport 1.5 on arb mainnet
   CoreSeaport public seaport;
   ODNFVZoneInterface public zone;
