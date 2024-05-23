@@ -13,7 +13,7 @@ contract Vault721Adapter is IERC7496 {
   bytes32 public constant DEBT = keccak256('DEBT');
   string public constant JSON_OPEN = '{"traits":{"';
   string public constant JSON_DISPLAYNAME = '":{"displayName":"';
-  string public constant JSON_DATATYPE = '","dataType":{"type": "string","minLength":1},"validateOnSale": "requireEq"}';
+  string public constant JSON_DATATYPE = '","dataType":{"type": "string","minLength":1},"validateOnSale": "';
   string public constant JSON_CLOSE = '}}';
 
   IVault721 public vault721;
@@ -78,10 +78,12 @@ contract Vault721Adapter is IERC7496 {
       JSON_DISPLAYNAME,
       'Collateral',
       JSON_DATATYPE,
+      'requireUintGte"}',
       ',"debt',
       JSON_DISPLAYNAME,
       'Debt',
       JSON_DATATYPE,
+      'requireUintLte"}',
       JSON_CLOSE
     );
   }
