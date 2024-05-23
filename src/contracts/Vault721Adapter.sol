@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.24;
+pragma solidity 0.8.20;
 
 import {Base64} from '@openzeppelin/utils/Base64.sol';
 import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';

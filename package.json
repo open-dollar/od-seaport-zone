@@ -1,15 +1,15 @@
 {
-  "name": "od-veto",
-  "version": "1.6.5",
+  "name": "od-seaport-zone",
+  "version": "1.0.0",
   "private": true,
-  "description": "Veto contracts for Open Dollar Governance",
-  "homepage": "https://www.opendollar.com/",
+  "description": "Seaport Zone SIP-15 and EIP-7496",
+  "homepage": "https://opendollar.com/",
+  "license": "GNU AGPL",
+  "author": "OpenFi Foundation",
   "repository": {
     "type": "git",
-    "url": "https://github.com/open-dollar/od-veto"
+    "url": "git+https://github.com/open-dollar/od-seaport-zone.git"
   },
-  "license": "MIT",
-  "author": "Keyp",
   "contributors": [
     "pi0neerpat (https://github.com/pi0neerpat)",
     "daopunk (https://github.com/daopunk)",
