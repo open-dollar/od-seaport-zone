@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity ^0.8.24;
 
 import {
   ERC20Interface, ERC721Interface, ERC1155Interface

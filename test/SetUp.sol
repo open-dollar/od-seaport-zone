@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity ^0.8.24;
 
 import {
   ERC20Interface, ERC721Interface, ERC1155Interface
@@ -31,7 +31,7 @@ import {ODNFVZone} from '../src/contracts/ODNFVZone.sol';
 import {ODNFVZoneInterface} from '../src/interfaces/ODNFVZoneInterface.sol';
 import {ODNFVZoneControllerInterface} from '../src/interfaces/ODNFVZoneControllerInterface.sol';
 import {ODNFVZoneController} from '../src/contracts/ODNFVZoneController.sol';
-import {Seaport as CoreSeaport} from 'seaport-core/Seaport.sol';
+import {Seaport as CoreSeaport} from 'seaport-core/src/Seaport.sol';
 
 import 'forge-std/console2.sol';
 

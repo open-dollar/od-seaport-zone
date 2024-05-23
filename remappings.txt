@@ -9,7 +9,7 @@
 
 seaport-types/=lib/seaport-types/
 shipyard-core/=lib/shipyard-core/
-
+seaport-core/=lib/seaport-core/
 @console2/=forge-std/console2.sol;
 
 seaport-sol/=lib/seaport-sol/
