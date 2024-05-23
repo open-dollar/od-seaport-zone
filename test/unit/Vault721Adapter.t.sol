@@ -135,7 +135,7 @@ contract Unit_Vault721Adapter is Base {
   /**
    * @notice encoded json data that OpenSea uses to enforce rules about traits:
    *
-   * {"traits":{"collateral":{"displayName":"Collateral","dataType":{"type": "string","minLength":1},"validateOnSale": "requireEq"},"debt":{"displayName":"Debt","dataType":{"type": "string","minLength":1},"validateOnSale": "requireEq"}}}
+   * {"traits":{"collateral":{"displayName":"Collateral","dataType":{"type": "string","minLength":1},"validateOnSale": "requireUintGte"},"debt":{"displayName":"Debt","dataType":{"type": "string","minLength":1},"validateOnSale": "requireUintLte"}}}
    * to base64
    * eyJ0cmFpdHMiOnsiY29sbGF0ZXJhbCI6eyJkaXNwbGF5TmFtZSI6IkNvbGxhdGVyYWwiLCJkYXRhVHlwZSI6eyJ0eXBlIjogInN0cmluZyIsIm1pbkxlbmd0aCI6MX0sInZhbGlkYXRlT25TYWxlIjogInJlcXVpcmVVaW50R3RlIn0sImRlYnQiOnsiZGlzcGxheU5hbWUiOiJEZWJ0IiwiZGF0YVR5cGUiOnsidHlwZSI6ICJzdHJpbmciLCJtaW5MZW5ndGgiOjF9LCJ2YWxpZGF0ZU9uU2FsZSI6ICJyZXF1aXJlVWludEx0ZSJ9fX0==
    */
