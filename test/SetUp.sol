@@ -96,7 +96,7 @@ contract SetUp is BaseTest {
   OrderParameters public baseOrderParameters;
   OrderComponents public baseOrderComponents;
 
-  ////Item Addr
+  ///////////////////// Item Addr
   OfferItem public offerItem;
   ConsiderationItem public considerationItem;
   OfferItem[] public offerItems;
@@ -133,13 +133,7 @@ contract SetUp is BaseTest {
   }
 
   ///@dev Construct and an offer item to the offer items array
-  function addOfferItem(
-    // ItemType itemType,
-    address token,
-    uint256 identifier,
-    uint256 startAmount,
-    uint256 endAmount
-  ) internal {
+  function addOfferItem(address token, uint256 identifier, uint256 startAmount, uint256 endAmount) internal {
     offerItem.itemType = ItemType.ERC721;
     offerItem.token = token;
     offerItem.identifierOrCriteria = identifier;
