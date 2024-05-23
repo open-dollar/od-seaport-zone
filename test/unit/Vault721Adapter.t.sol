@@ -44,18 +44,6 @@ contract Unit_Vault721Adapter_SetUp is Base {
   function test_constants() public {
     assertTrue(adapter.COLLATERAL() == C);
     assertTrue(adapter.DEBT() == D);
-    assertEq(
-      bytes32(
-        bytes(
-          string.concat(adapter.JSON_OPEN(), adapter.JSON_DISPLAYNAME(), adapter.JSON_DATATYPE(), adapter.JSON_CLOSE())
-        )
-      ),
-      bytes32(
-        bytes(
-          '{"traits":{"":{"displayName":"","dataType":{"type": "string","minLength":1},"validateOnSale": "requireEq"}}}'
-        )
-      )
-    );
   }
 
   function test_mockCall(uint256 _tokenId, nfvValue memory _nfvValue) public nfvValues(_nfvValue) {
@@ -158,7 +146,7 @@ contract Unit_Vault721Adapter is Base {
       bytes32(bytes(_uri)),
       bytes32(
         bytes(
-          'data:application/json;base64,eyJ0cmFpdHMiOnsiY29sbGF0ZXJhbCI6eyJkaXNwbGF5TmFtZSI6IkNvbGxhdGVyYWwiLCJkYXRhVHlwZSI6eyJ0eXBlIjogInN0cmluZyIsIm1pbkxlbmd0aCI6MX0sInZhbGlkYXRlT25TYWxlIjogInJlcXVpcmVFcSJ9LCJkZWJ0Ijp7ImRpc3BsYXlOYW1lIjoiRGVidCIsImRhdGFUeXBlIjp7InR5cGUiOiAic3RyaW5nIiwibWluTGVuZ3RoIjoxfSwidmFsaWRhdGVPblNhbGUiOiAicmVxdWlyZUVxIn19fQ=='
+          'data:application/json;base64,eyJ0cmFpdHMiOnsiY29sbGF0ZXJhbCI6eyJkaXNwbGF5TmFtZSI6IkNvbGxhdGVyYWwiLCJkYXRhVHlwZSI6eyJ0eXBlIjogInN0cmluZyIsIm1pbkxlbmd0aCI6MX0sInZhbGlkYXRlT25TYWxlIjogInJlcXVpcmVVaW50R3RlIn0sImRlYnQiOnsiZGlzcGxheU5hbWUiOiJEZWJ0IiwiZGF0YVR5cGUiOnsidHlwZSI6ICJzdHJpbmciLCJtaW5MZW5ndGgiOjF9LCJ2YWxpZGF0ZU9uU2FsZSI6ICJyZXF1aXJlVWludEx0ZSJ9fX0='
         )
       )
     );
