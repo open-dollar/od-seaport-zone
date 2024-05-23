@@ -4,12 +4,12 @@
   "private": true,
   "description": "Seaport Zone SIP-15 and EIP-7496",
   "homepage": "https://opendollar.com/",
-  "license": "GNU AGPL",
-  "author": "OpenFi Foundation",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/open-dollar/od-seaport-zone.git"
   },
+  "license": "GNU AGPL",
+  "author": "OpenFi Foundation",
   "contributors": [
     "pi0neerpat (https://github.com/pi0neerpat)",
     "daopunk (https://github.com/daopunk)",
@@ -35,4 +35,3 @@
     "sort-package-json": "^2.8.0"
   }
 }
- 

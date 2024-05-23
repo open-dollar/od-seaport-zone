@@ -6,6 +6,8 @@ import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';
 import {IERC7496} from 'shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol';
 
 /**
+ * @title Adds support for ERC7496 to an existing ERC721
+ * @author OpenFi Foundation
  * @notice IERC7496 events are never emitted since NFVState is tracked in Vault721
  */
 contract Vault721Adapter is IERC7496 {
@@ -46,21 +48,6 @@ contract Vault721Adapter is IERC7496 {
   }
 
   /**
-   * @dev return onchain data uri of trait details
-   */
-  function getTraitMetadataURI() external view returns (string memory _uri) {
-    string memory _json = _formatJsonMetaData();
-    _uri = string.concat('data:application/json;base64,', Base64.encode(bytes(_json)));
-  }
-
-  /**
-   * @dev setTrait is disabled; NFVState is found in Vault721
-   */
-  function setTrait(uint256, bytes32, bytes32) external {
-    revert Disabled();
-  }
-
-  /**
    * @dev get NFVState from Vault721
    * @notice return values are not hashed to enable enforceable condition in zone
    */
@@ -69,6 +56,14 @@ contract Vault721Adapter is IERC7496 {
     if (_traitKey == COLLATERAL) return bytes32(_nfvState.collateral);
     if (_traitKey == DEBT) return bytes32(_nfvState.debt);
     else revert UnknownTraitKeys();
+  }
+
+  /**
+   * @dev return onchain data uri of trait details
+   */
+  function getTraitMetadataURI() external view returns (string memory _uri) {
+    string memory _json = _formatJsonMetaData();
+    _uri = string.concat('data:application/json;base64,', Base64.encode(bytes(_json)));
   }
 
   function _formatJsonMetaData() internal pure returns (string memory _json) {
@@ -86,5 +81,12 @@ contract Vault721Adapter is IERC7496 {
       'requireUintLte"}',
       JSON_CLOSE
     );
+  }
+
+  /**
+   * @dev setTrait is disabled; NFVState is found in Vault721
+   */
+  function setTrait(uint256, bytes32, bytes32) external {
+    revert Disabled();
   }
 }
