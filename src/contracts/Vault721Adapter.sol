@@ -2,8 +2,8 @@
 pragma solidity 0.8.24;
 
 import {Base64} from '@openzeppelin/utils/Base64.sol';
+import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';
 import {IERC7496} from 'shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol';
-import {IVault721} from 'src/interfaces/IVault721.sol';
 
 /**
  * @notice IERC7496 events are never emitted since NFVState is tracked in Vault721
