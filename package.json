@@ -4,12 +4,12 @@
   "private": true,
   "description": "Seaport Zone SIP-15 and EIP-7496",
   "homepage": "https://opendollar.com/",
-  "license": "GNU AGPL",
-  "author": "OpenFi Foundation",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/open-dollar/od-seaport-zone.git"
   },
+  "license": "GNU AGPL",
+  "author": "OpenFi Foundation",
   "contributors": [
     "cupOJoseph",
     "BCLeFevre",
@@ -29,7 +29,7 @@
     "test:coverage": "forge coverage --report lcov && lcov --ignore-errors unused --remove lcov.info 'node_modules/*' 'script/*' 'test/*' 'src/contracts/for-test/*' 'src/libraries/*' -o lcov.info.pruned && mv lcov.info.pruned lcov.info && genhtml -o coverage-report lcov.info"
   },
   "dependencies": {
-    "@opendollar/contracts": "^0.0.0-e31c2151",
+    "@opendollar/contracts": "^0.0.0-04ddd4b0",
     "@openzeppelin/contracts": "^4.9.6"
   },
   "devDependencies": {

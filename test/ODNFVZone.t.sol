@@ -12,13 +12,13 @@ import {
     Order,
     OrderComponents,
     OrderType
-} from "seaport-types/src/lib/ConsiderationStructs.sol";
+} from 'seaport-types/src/lib/ConsiderationStructs.sol';
 
-import { UnavailableReason } from "seaport-sol/src/SpaceEnums.sol";
+import { UnavailableReason } from 'seaport-sol/src/SpaceEnums.sol';
 
 import {
     ConsiderationInterface
-} from "seaport-types/src/interfaces/ConsiderationInterface.sol";
+} from 'seaport-types/src/interfaces/ConsiderationInterface.sol';
 
 import {
     ConsiderationItemLib,
@@ -28,20 +28,22 @@ import {
     OrderComponentsLib,
     OrderLib,
     SeaportArrays
-} from "seaport-sol/src/lib/SeaportStructLib.sol";
+} from 'seaport-sol/src/lib/SeaportStructLib.sol';
 
 import {
     TestTransferValidationZoneOfferer
-} from "seaport/contracts/test/TestTransferValidationZoneOfferer.sol";
+} from 'seaport/contracts/test/TestTransferValidationZoneOfferer.sol';
 
 import {
     FulfillAvailableHelper
-} from "seaport-sol/src/fulfillments/available/FulfillAvailableHelper.sol";
+} from 'seaport-sol/src/fulfillments/available/FulfillAvailableHelper.sol';
 
 import {
     MatchFulfillmentHelper
-} from "seaport-sol/src/fulfillments/match/MatchFulfillmentHelper.sol";
-import { TestZone } from "seaport/test/foundry/zone/impl/TestZone.sol";
+} from 'seaport-sol/src/fulfillments/match/MatchFulfillmentHelper.sol';
+
+import {SIP6Encoder} from 'shipyard-core/src/sips/lib/SIP6Encoder.sol';
+import { TestZone } from 'seaport/test/foundry/zone/impl/TestZone.sol';
 import {ODNFVZone} from '../src/contracts/ODNFVZone.sol';
 import {ODNFVZoneInterface} from '../src/interfaces/ODNFVZoneInterface.sol';
 import {ODNFVZoneControllerInterface} from '../src/interfaces/ODNFVZoneControllerInterface.sol';
@@ -61,6 +63,7 @@ contract ODNFVZoneTest is SetUp {
     using OrderComponentsLib for OrderComponents;
     using OrderLib for Order;
     using OrderLib for Order[];
+    using SIP6Encoder for bytes;
 
     MatchFulfillmentHelper matchFulfillmentHelper;
     FulfillAvailableHelper fulfillAvailableFulfillmentHelper;
@@ -76,8 +79,11 @@ contract ODNFVZoneTest is SetUp {
 
     // constant strings for recalling struct lib defaults
     // ideally these live in a base test class
-    string constant SINGLE_721 = "single 721";
-    string constant VALIDATION_ZONE = "validation zone";
+    string constant SINGLE_721 = 'single 721';
+    string constant VALIDATION_ZONE = 'validation zone';
+
+    bytes32 public constant COLLATERAL = keccak256('COLLATERAL');
+    bytes32 public constant DEBT = keccak256('DEBT');
 
     struct Context {
         ConsiderationInterface seaport;
@@ -151,6 +157,12 @@ contract ODNFVZoneTest is SetUp {
         uint256 primeOffererBalanceAfter;
     }
 
+    modifier happyPath(MatchFuzzInputs memory context){
+      context.shouldUseTransferValidationZoneForMirror = true;
+      context.shouldUseTransferValidationZoneForPrime = true;
+      _;
+    }
+
     function setUp()public virtual override {
       super.setUp();
          matchFulfillmentHelper = new MatchFulfillmentHelper();
@@ -211,7 +223,7 @@ contract ODNFVZoneTest is SetUp {
 
     function testMatchAdvancedOrdersFuzz(
         MatchFuzzInputs memory matchArgs
-    ) public {
+    ) public happyPath(matchArgs){
         // Avoid weird overflow issues.
         matchArgs.amount = uint128(
             bound(matchArgs.amount, 1, 0xffffffffffffffff)
@@ -278,7 +290,7 @@ contract ODNFVZoneTest is SetUp {
 
     function execMatchAdvancedOrdersFuzz(
         Context memory context
-    ) external stateless {
+    ) external stateless{
         // Set up the infrastructure for this function in a struct to avoid
         // stack depth issues.
         MatchAdvancedOrdersInfra memory infra = MatchAdvancedOrdersInfra({
@@ -320,13 +332,15 @@ contract ODNFVZoneTest is SetUp {
             infra.advancedOrders[i] = infra.orders[i].toAdvancedOrder(
                 1,
                 1,
-                context.matchArgs.shouldIncludeJunkDataInAdvancedOrder
-                    ? bytes(abi.encodePacked(context.matchArgs.salt))
-                    : bytes("")
+                //todo include extra data encoding here
+                // context.matchArgs.shouldIncludeJunkDataInAdvancedOrder
+                //     ? bytes(abi.encodePacked(context.matchArgs.salt))
+                //     : bytes('')
+                bytes('extraData')
             );
 
-            infra.advancedOrders[i].parameters.zoneHash = keccak256(infra.advancedOrders[i].extraData);
-            infra.advancedOrders[i].signature = signOrder(seaport, alicePk, keccak256(abi.encode(infra.orders[i])));
+            // infra.advancedOrders[i].parameters.zoneHash = keccak256(infra.advancedOrders[i].extraData);
+            // infra.advancedOrders[i].signature = signOrder(seaport, fuzzPrimeOfferer.key, keccak256(abi.encode(infra.orders[i])));
         }
 
         // Set up event expectations.
@@ -830,17 +844,37 @@ function _buildPrimeOfferItemArray(
             .withRecipient(recipient);
     }
 
+    function _getTraits(uint256 tokenId)internal returns(bytes[] traits){
+      bytes32[] traitKeys = new bytes32[](2);
+      traitKeys[0] = COLLATERAL;
+      traitsKeys[2] = DEBT;
+      Vault721Adaptor.getTraitValues(tokenId, traitKeys);
+    }
+
+    function _generateSIP6ZoneHash(bytes[] orderArray)internal returns(bytes encodedTraits){
+        
+    }
+    //TODO 1 make this build an advance order and sign it instead of signing the basic order then changing it to an advance order
     function _toOrder(
         ConsiderationInterface seaport,
         OrderComponents memory orderComponents,
         uint256 pkey
     ) internal view returns (Order memory order) {
+      
         bytes32 orderHash = seaport.getOrderHash(orderComponents);
         bytes memory signature = signOrder(seaport, pkey, orderHash);
         order = OrderLib
             .empty()
             .withParameters(orderComponents.toOrderParameters())
             .withSignature(signature);
+    }
+
+    function _toAdvancedOrder(
+              ConsiderationInterface seaport,
+        OrderComponents memory orderComponents,
+        uint256 pkey
+    ) internal view returns (AdvancedOrder advancedOrder) {
+      
     }
 
     function _toOfferItem(
