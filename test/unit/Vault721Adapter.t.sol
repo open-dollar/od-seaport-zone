@@ -38,9 +38,12 @@ contract Base is Test {
 
 contract Unit_Vault721Adapter_SetUp is Base {
   function test_initialize() public {
+    assertTrue(adapter.vault721() == vault721);
+  }
+
+  function test_constants() public {
     assertTrue(adapter.COLLATERAL() == C);
     assertTrue(adapter.DEBT() == D);
-    assertTrue(adapter.vault721() == vault721);
   }
 
   function test_mockCall(uint256 _tokenId, nfvValue memory _nfvValue) public nfvValues(_nfvValue) {
@@ -129,9 +132,23 @@ contract Unit_Vault721Adapter is Base {
     );
   }
 
+  /**
+   * @notice encoded json data that OpenSea uses to enforce rules about traits:
+   *
+   * {"traits":{"collateral":{"displayName":"Collateral","dataType":{"type": "string","minLength":1},"validateOnSale": "requireUintGte"},"debt":{"displayName":"Debt","dataType":{"type": "string","minLength":1},"validateOnSale": "requireUintLte"}}}
+   * to base64
+   */
   function test_getTraitMetadataURI() public {
-    bytes32 _uri = bytes32(abi.encode(adapter.getTraitMetadataURI()));
-    assertEq(_uri, bytes32(abi.encode('?')));
+    string memory _uri = adapter.getTraitMetadataURI();
+    emit log_named_string('Metadata URI', _uri);
+    assertEq(
+      bytes32(bytes(_uri)),
+      bytes32(
+        bytes(
+          'data:application/json;base64,eyJ0cmFpdHMiOnsiY29sbGF0ZXJhbCI6eyJkaXNwbGF5TmFtZSI6IkNvbGxhdGVyYWwiLCJkYXRhVHlwZSI6eyJ0eXBlIjogInN0cmluZyIsIm1pbkxlbmd0aCI6MX0sInZhbGlkYXRlT25TYWxlIjogInJlcXVpcmVVaW50R3RlIn0sImRlYnQiOnsiZGlzcGxheU5hbWUiOiJEZWJ0IiwiZGF0YVR5cGUiOnsidHlwZSI6ICJzdHJpbmciLCJtaW5MZW5ndGgiOjF9LCJ2YWxpZGF0ZU9uU2FsZSI6ICJyZXF1aXJlVWludEx0ZSJ9fX0='
+        )
+      )
+    );
   }
 
   function test_setTraitValues_Revert(uint256 _tokenId, bytes32 _traitKey, bytes32 _traitValue) public {
