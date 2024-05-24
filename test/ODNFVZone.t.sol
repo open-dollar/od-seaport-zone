@@ -294,9 +294,6 @@ contract ODNFVZoneTest is SetUp {
             primeOffererBalanceAfter: 0
         });
 
-        // TODO: (Someday) See if the stack can tolerate fuzzing criteria
-        // resolvers.
-
         // The prime offerer is offering NFTs and considering ERC20/Native.
         fuzzPrimeOfferer = makeAndAllocateAccount(
             context.matchArgs.primeOfferer
@@ -327,6 +324,9 @@ contract ODNFVZoneTest is SetUp {
                     ? bytes(abi.encodePacked(context.matchArgs.salt))
                     : bytes("")
             );
+
+            infra.advancedOrders[i].parameters.zoneHash = keccak256(infra.advancedOrders[i].extraData);
+            infra.advancedOrders[i].signature = signOrder(seaport, alicePk, keccak256(abi.encode(infra.orders[i])));
         }
 
         // Set up event expectations.
@@ -451,7 +451,7 @@ contract ODNFVZoneTest is SetUp {
         }
     }
 
-      function _buildOrdersAndFulfillmentsMirrorOrdersFromFuzzArgs(
+    function _buildOrdersAndFulfillmentsMirrorOrdersFromFuzzArgs(
         Context memory context
     ) internal returns (Order[] memory, Fulfillment[] memory) {
         uint256 i;

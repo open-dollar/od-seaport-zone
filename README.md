@@ -20,3 +20,10 @@ Template for projects using `@opendollar/contracts` with Foundry
 - https://book.getfoundry.sh/
 - https://contracts.opendollar.com
 - https://docs.opendollar.com
+
+
+## Attn:
+
+before running these tests, you must cd into the lib/seaport folder and run
+
+`FOUNDRY_PROFILE=optimized forge build`
