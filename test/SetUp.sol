@@ -20,8 +20,8 @@ import {ODNFVZoneController} from '../src/contracts/ODNFVZoneController.sol';
 import {Seaport as CoreSeaport} from 'seaport-core/src/Seaport.sol';
 import {ConsiderationInterface} from 'seaport-types/src/interfaces/ConsiderationInterface.sol';
 import {IVault721Adapter} from '../src/interfaces/IVault721Adapter.sol';
-// import {Vault721Adapter} from '../src/contracts/Vault721Adapter.sol';
-import {IVault721} from '../src/interfaces/IVault721.sol';
+import {Vault721Adapter} from '../src/contracts/Vault721Adapter.sol';
+import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';
 import {BaseOrderTest} from 'seaport/test/foundry/utils/BaseOrderTest.sol';
 import 'forge-std/console2.sol';
 import 'forge-std/Test.sol';
@@ -34,8 +34,8 @@ contract SetUp is BaseOrderTest {
   using AdvancedOrderLib for AdvancedOrder[];
 
   address public deployer = address(0xdeadce11);
-  address public vault721AdapterAddress = address(0x0005AFE00fF7E7FF83667bFe4F2996720BAf0B36);
-  IVault721Adapter public vault721Adapter;
+  address public vault721Address = address(0x0005AFE00fF7E7FF83667bFe4F2996720BAf0B36);
+  Vault721Adapter public vault721Adapter;
   IVault721 public vault721;
   address payable public seaportMainnetAddress = payable(address(0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC)); //seaport 1.5 on arb mainnet
   CoreSeaport public seaport;
@@ -50,8 +50,8 @@ contract SetUp is BaseOrderTest {
     seaport = CoreSeaport(seaportMainnetAddress);
     zoneController = new ODNFVZoneController(deployer);
     ODNFVzone = ODNFVZoneInterface(zoneController.createZone(keccak256(abi.encode('salt'))));
-    vault721 = IVault721(vault721AdapterAddress);
-    vault721Adapter = IVault721Adapter(address(vault721));
+    vault721 = IVault721(vault721Address);
+    vault721Adapter = new Vault721Adapter(vault721);
   }
 
 }
