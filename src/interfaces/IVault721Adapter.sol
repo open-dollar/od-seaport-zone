@@ -27,8 +27,6 @@ interface IVault721Adapter is IERC7496 {
    */
   function getTraitMetadataURI() external view returns (string memory _uri);
 
-
-
   /**
    * @dev setTrait is disabled; NFVState is found in Vault721
    */

@@ -26,8 +26,6 @@ import {BaseOrderTest} from 'seaport/test/foundry/utils/BaseOrderTest.sol';
 import 'forge-std/console2.sol';
 import 'forge-std/Test.sol';
 
-
-
 contract SetUp is BaseOrderTest {
   using BasicOrderParametersLib for BasicOrderParameters;
   using AdvancedOrderLib for AdvancedOrder;
@@ -42,9 +40,10 @@ contract SetUp is BaseOrderTest {
   ODNFVZoneInterface public ODNFVzone;
   ODNFVZoneController public zoneController;
 
-  function setUp() public virtual override  {
+  function setUp() public virtual override {
     super.setUp();
     //create arb mainnet fork;
+    vm.createSelectFork(vm.envString('ARB_MAINNET_RPC'));
     vm.deal(deployer, 1000 ether);
     vm.startPrank(deployer);
     seaport = CoreSeaport(seaportMainnetAddress);
@@ -53,5 +52,4 @@ contract SetUp is BaseOrderTest {
     vault721 = IVault721(vault721Address);
     vault721Adapter = new Vault721Adapter(vault721);
   }
-
 }

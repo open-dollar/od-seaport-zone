@@ -27,6 +27,7 @@ import 'forge-std/console2.sol';
  * @notice ODSeaportZone is an implementation of SIP-15. It verifies that the dynamic traits of an NFT
  *         have not changed between the time of order creation and the time of order fulfillment.
  */
+
 contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
   using SIP6Decoder for bytes;
 
@@ -220,7 +221,7 @@ contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
     isNotPaused
     returns (bytes4 validOrderMagicValue)
   {
-      console2.log("ZONE HASH");
+    console2.log('ZONE HASH');
     console2.logBytes32(zoneParameters.zoneHash);
     // Get zoneHash from zoneParameters
     // note: keccak of fixed data array is going to be zoneHash
@@ -234,8 +235,6 @@ contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
     if (zoneHash != keccak256(extraData)) {
       revert InvalidZoneHash(zoneHash, keccak256(extraData));
     }
-
-  
 
     // TODO: ask if this should be SIP-6 or SIP-15
     // Decode substandard version from extraData using SIP-6 decoder
