@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.20;
 
 import {
     AdvancedOrder,
@@ -7,6 +7,7 @@ import {
     CriteriaResolver,
     Fulfillment,
     FulfillmentComponent,
+    OrderParameters,
     ItemType,
     OfferItem,
     Order,
@@ -26,6 +27,8 @@ import {
     FulfillmentLib,
     OfferItemLib,
     OrderComponentsLib,
+    OrderParametersLib,
+    AdvancedOrderLib,
     OrderLib,
     SeaportArrays
 } from 'seaport-sol/src/lib/SeaportStructLib.sol';
@@ -61,8 +64,11 @@ contract ODNFVZoneTest is SetUp {
     using ConsiderationItemLib for ConsiderationItem;
     using ConsiderationItemLib for ConsiderationItem[];
     using OrderComponentsLib for OrderComponents;
+    using OrderParametersLib for OrderParameters;
     using OrderLib for Order;
     using OrderLib for Order[];
+    using AdvancedOrderLib for AdvancedOrder;
+    using AdvancedOrderLib for AdvancedOrder[];
     using SIP6Encoder for bytes;
 
     MatchFulfillmentHelper matchFulfillmentHelper;
@@ -207,6 +213,7 @@ contract ODNFVZoneTest is SetUp {
         // fill in offer later
         // fill in consideration later
         // fill in counter later
+        // Advanced Order
     }
 
     
@@ -333,6 +340,7 @@ contract ODNFVZoneTest is SetUp {
                 1,
                 1,
                 //todo include extra data encoding here
+                
                 // context.matchArgs.shouldIncludeJunkDataInAdvancedOrder
                 //     ? bytes(abi.encodePacked(context.matchArgs.salt))
                 //     : bytes('')
@@ -760,7 +768,18 @@ function _buildPrimeOfferItemArray(
 
         return considerationItemArray;
     }
+    function _buildOrderParameters(      Context memory context,
+        OfferItem[] memory offerItemArray,
+        ConsiderationItem[] memory considerationItemArray,
+        address offerer)internal returns(OrderParameters memory _orderParamters){
+          OrderParameters memory orderParameters = OrderParametersLib.empty();
+          // create the offer and consideration arrays
+            OfferItem[] memory _offerItemArray = offerItemArray;
+        ConsiderationItem[]
+            memory _considerationItemArray = considerationItemArray;
 
+
+    }
     function _buildOrderComponents(
         Context memory context,
         OfferItem[] memory offerItemArray,
@@ -844,14 +863,14 @@ function _buildPrimeOfferItemArray(
             .withRecipient(recipient);
     }
 
-    function _getTraits(uint256 tokenId)internal returns(bytes[] traits){
-      bytes32[] traitKeys = new bytes32[](2);
+    function _getTraits(uint256 tokenId)internal returns(bytes[] memory traits){
+      bytes32[] memory traitKeys = new bytes32[](2);
       traitKeys[0] = COLLATERAL;
-      traitsKeys[2] = DEBT;
-      Vault721Adaptor.getTraitValues(tokenId, traitKeys);
+      traitKeys[2] = DEBT;
+      // vault721Adaptor.getTraitValues(tokenId, traitKeys);
     }
 
-    function _generateSIP6ZoneHash(bytes[] orderArray)internal returns(bytes encodedTraits){
+    function _generateSIP6ZoneHash(bytes[] memory orderArray)internal returns(bytes memory encodedTraits){
         
     }
     //TODO 1 make this build an advance order and sign it instead of signing the basic order then changing it to an advance order
@@ -873,8 +892,8 @@ function _buildPrimeOfferItemArray(
               ConsiderationInterface seaport,
         OrderComponents memory orderComponents,
         uint256 pkey
-    ) internal view returns (AdvancedOrder advancedOrder) {
-      
+    ) internal view returns (AdvancedOrder memory advancedOrder) {
+
     }
 
     function _toOfferItem(
