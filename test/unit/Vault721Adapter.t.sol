@@ -5,7 +5,7 @@ import {Test, console} from 'forge-std/Test.sol';
 import {Vault721Adapter} from 'src/contracts/Vault721Adapter.sol';
 import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';
 
-struct nfvValue {
+struct NfvValue {
   uint256 collateral;
   uint256 debt;
 }
@@ -36,7 +36,7 @@ contract Base is Test {
   }
 }
 
-contract Unit_Vault721Adapter_SetUp is Base {
+contract UnitVault721AdapterSetUp is Base {
   function test_initialize() public {
     assertTrue(adapter.vault721() == vault721);
   }
@@ -56,7 +56,7 @@ contract Unit_Vault721Adapter_SetUp is Base {
   }
 }
 
-contract Unit_Vault721Adapter is Base {
+contract UnitVault721Adapter is Base {
   function test_getTraitValue(uint256 _tokenId, nfvValue memory _nfvValue) public {
     _mockNfvStateCall(_nfvValue);
     bytes32 _traitValueCollateral = adapter.getTraitValue(_tokenId, C);

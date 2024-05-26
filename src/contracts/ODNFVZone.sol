@@ -20,7 +20,7 @@ import {
 import {ODNFVZoneEventsAndErrors} from '../interfaces/ODNFVZoneEventsAndErrors.sol';
 import {TraitComparison} from '../libraries/Structs.sol';
 import {ODNFVZoneInterface} from '../interfaces/ODNFVZoneInterface.sol';
-import 'forge-std/console2.sol';
+
 /**
  * @title  ODSeaportZone
  * @author MrDeadce11 & stephankmin
@@ -221,8 +221,8 @@ contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
     isNotPaused
     returns (bytes4 validOrderMagicValue)
   {
-    console2.log('ZONE HASH');
-    console2.logBytes32(zoneParameters.zoneHash);
+    
+    
     // Get zoneHash from zoneParameters
     // note: keccak of fixed data array is going to be zoneHash
     // extraData isn't signed
