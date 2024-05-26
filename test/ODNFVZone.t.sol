@@ -250,6 +250,10 @@ contract ODNFVZoneTest is SetUp {
 
     // The prime offerer is offering NFTs and considering ERC20/Native.
     fuzzPrimeOfferer = makeAndAllocateAccount(context.matchArgs.primeOfferer);
+    address offererProxy = deployOrFind(fuzzPrimeOfferer);
+    vm.startPrank(offererProxy);
+    vault721.approve(address(seaport.conduit()), tokenId);
+    vm.stopPrank();
     // fuzzPrimeOfferer = cloneOwner(context.matchArgs.tokenId);
     // The mirror offerer is offering ERC20/Native and considering NFTs.
     fuzzMirrorOfferer = makeAndAllocateAccount(context.matchArgs.mirrorOfferer);
