@@ -22,13 +22,13 @@ contract Base is Test {
     adapter = new Vault721Adapter(vault721);
   }
 
-  modifier nfvValues(nfvValue memory _nfvValue) {
+  modifier nfvValues(NfvValue memory _nfvValue) {
     vm.assume(_nfvValue.collateral > 0);
     vm.assume(_nfvValue.debt >= 0);
     _;
   }
 
-  function _mockNfvStateCall(nfvValue memory _nfvValue) internal nfvValues(_nfvValue) {
+  function _mockNfvStateCall(NfvValue memory _nfvValue) internal nfvValues(_nfvValue) {
     IVault721.NFVState memory nfvState;
     nfvState.collateral = _nfvValue.collateral;
     nfvState.debt = _nfvValue.debt;
@@ -46,7 +46,7 @@ contract UnitVault721AdapterSetUp is Base {
     assertTrue(adapter.DEBT() == D);
   }
 
-  function test_mockCall(uint256 _tokenId, nfvValue memory _nfvValue) public nfvValues(_nfvValue) {
+  function test_mockCall(uint256 _tokenId, NfvValue memory _nfvValue) public nfvValues(_nfvValue) {
     vm.assume(_tokenId > 0);
     _mockNfvStateCall(_nfvValue);
     bytes32 _traitValueCollateral = adapter.getTraitValue(_tokenId, C);
@@ -57,7 +57,7 @@ contract UnitVault721AdapterSetUp is Base {
 }
 
 contract UnitVault721Adapter is Base {
-  function test_getTraitValue(uint256 _tokenId, nfvValue memory _nfvValue) public {
+  function test_getTraitValue(uint256 _tokenId, NfvValue memory _nfvValue) public {
     _mockNfvStateCall(_nfvValue);
     bytes32 _traitValueCollateral = adapter.getTraitValue(_tokenId, C);
     assertEq(bytes32(_nfvValue.collateral), _traitValueCollateral);
@@ -65,14 +65,14 @@ contract UnitVault721Adapter is Base {
     assertEq(bytes32(_nfvValue.debt), _traitValueDebt);
   }
 
-  function test_getTraitValueRevert(uint256 _tokenId, bytes32 _traitKey, nfvValue memory _nfvValue) public {
+  function test_getTraitValueRevert(uint256 _tokenId, bytes32 _traitKey, NfvValue memory _nfvValue) public {
     vm.assume(_traitKey != C && _traitKey != D);
     _mockNfvStateCall(_nfvValue);
     vm.expectRevert(abi.encodePacked(bytes4((keccak256('UnknownTraitKeys()')))));
     adapter.getTraitValue(_tokenId, _traitKey);
   }
 
-  function test_getTraitValues(uint256 _tokenId, nfvValue memory _nfvValue) public {
+  function test_getTraitValues(uint256 _tokenId, NfvValue memory _nfvValue) public {
     bytes32[] memory _traitKeys = new bytes32[](2);
     _traitKeys[0] = C;
     _traitKeys[1] = D;
@@ -96,7 +96,7 @@ contract UnitVault721Adapter is Base {
     assertEq(bytes32(_nfvValue.debt), _res4);
   }
 
-  function test_getTraitValuesReverseParams(uint256 _tokenId, nfvValue memory _nfvValue) public {
+  function test_getTraitValuesReverseParams(uint256 _tokenId, NfvValue memory _nfvValue) public {
     bytes32[] memory _traitKeys = new bytes32[](2);
     _traitKeys[0] = D;
     _traitKeys[1] = C;
@@ -117,7 +117,7 @@ contract UnitVault721Adapter is Base {
     uint256 _tokenId,
     bytes32 _traitKey1,
     bytes32 _traitKey2,
-    nfvValue memory _nfvValue
+    NfvValue memory _nfvValue
   ) public {
     bytes32[] memory _traitKeys = new bytes32[](2);
     vm.assume(_traitKey1 != C && _traitKey1 != D);

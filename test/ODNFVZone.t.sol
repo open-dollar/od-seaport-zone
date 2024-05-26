@@ -44,7 +44,7 @@ import {ODNFVZoneInterface} from '../src/interfaces/ODNFVZoneInterface.sol';
 import {ODNFVZoneControllerInterface} from '../src/interfaces/ODNFVZoneControllerInterface.sol';
 import {ODNFVZoneController} from '../src/contracts/ODNFVZoneController.sol';
 import {SetUp} from './SetUp.sol';
-
+import 'forge-std/console2.sol';
 
 contract ODNFVZoneTest is SetUp {
   using FulfillmentLib for Fulfillment;
@@ -62,22 +62,22 @@ contract ODNFVZoneTest is SetUp {
   using AdvancedOrderLib for AdvancedOrder[];
   using SIP6Encoder for bytes;
 
-  MatchFulfillmentHelper _matchFulfillmentHelper;
-  FulfillAvailableHelper _fulfillAvailableFulfillmentHelper;
-  ODNFVZone _zone;
-  TestZone _testZone;
+  MatchFulfillmentHelper matchFulfillmentHelper;
+  FulfillAvailableHelper fulfillAvailableFulfillmentHelper;
+  ODNFVZone zone;
+  TestZone testZone;
 
-  FulfillFuzzInputs _emptyFulfill;
-  MatchFuzzInputs _emptyMatch;
+  FulfillFuzzInputs emptyFulfill;
+  MatchFuzzInputs emptyMatch;
 
-  Account _fuzzPrimeOfferer;
-  Account _fuzzMirrorOfferer;
+  Account fuzzPrimeOfferer;
+  Account fuzzMirrorOfferer;
 
   // constant strings for recalling struct lib defaults
   // ideally these live in a base test class
-  string constant _SINGLE_721 = 'single 721';
-  string constant _VALIDATION_ZONE = 'validation zone';
-  string constant _ADV_VALIDATION_ZONE = 'adv validation zone';
+  string constant SINGLE_721 = 'single 721';
+  string constant VALIDATION_ZONE = 'validation zone';
+  string constant ADV_VALIDATION_ZONE = 'adv validation zone';
 
   bytes32 public constant COLLATERAL = keccak256('COLLATERAL');
   bytes32 public constant DEBT = keccak256('DEBT');
@@ -177,7 +177,7 @@ contract ODNFVZoneTest is SetUp {
 
     OrderComponentsLib.empty().withOfferer(offerer1.addr).withZone(address(zone)).withOrderType(
       OrderType.FULL_RESTRICTED
-    ).withStartTime(block.timestamp).withEndTime(block.timestamp + 1).withZoneHash(bytes32(0)).withSalt(0)
+    ).withStartTime(block.timestamp + vault721.timeDelay()).withEndTime(block.timestamp + vault721.timeDelay() + 1).withZoneHash(bytes32(0)).withSalt(0)
       .withConduitKey(conduitKeyOne).saveDefault(VALIDATION_ZONE); // not strictly necessary
 
     // fill in offer later
@@ -186,7 +186,7 @@ contract ODNFVZoneTest is SetUp {
     // Advanced Order
   }
 
-  function _test(function(Context memory) external fn, Context memory context) internal {
+  function test(function(Context memory) external fn, Context memory context) internal {
     try fn(context) {
       fail();
     } catch (bytes memory reason) {
@@ -222,7 +222,7 @@ contract ODNFVZoneTest is SetUp {
       address(uint160(bound(uint160(matchArgs.unspentPrimeOfferItemRecipient), 1, type(uint160).max)))
     );
 
-    matchArgs.tokenId = bound(matchArgs.tokenId, vault721.totalSupply() + 1, type(uint256).max);
+    matchArgs.tokenId = vault721.totalSupply() + 1;
     matchArgs.shouldUseTransferValidationZoneForMirror = true;
     matchArgs.shouldUseTransferValidationZoneForPrime = true;
 
@@ -250,14 +250,10 @@ contract ODNFVZoneTest is SetUp {
 
     // The prime offerer is offering NFTs and considering ERC20/Native.
     fuzzPrimeOfferer = makeAndAllocateAccount(context.matchArgs.primeOfferer);
-    address offererProxy = deployOrFind(fuzzPrimeOfferer);
-    vm.startPrank(offererProxy);
-    vault721.approve(address(seaport.conduit()), tokenId);
-    vm.stopPrank();
-    // fuzzPrimeOfferer = cloneOwner(context.matchArgs.tokenId);
+
     // The mirror offerer is offering ERC20/Native and considering NFTs.
     fuzzMirrorOfferer = makeAndAllocateAccount(context.matchArgs.mirrorOfferer);
-    // fuzzMirrorOfferer = cloneOwner(context.matchArgs.tokenId);
+
     // Set fuzzMirrorOfferer as the zone's expected offer recipient.
     // zone.setExpectedOfferRecipient(fuzzMirrorOfferer.addr);
     // Create the orders and fulfuillments.
@@ -272,49 +268,49 @@ contract ODNFVZoneTest is SetUp {
         infra.orders[i].toAdvancedOrder(1, 1, _getExtraData(infra.orders[i].parameters.offer[0].identifierOrCriteria));
     }
 
+          vm.warp(block.timestamp + vault721.timeDelay());
+
     // Set up event expectations.
     if (fuzzPrimeOfferer.addr != fuzzMirrorOfferer.addr) {
       // If the fuzzPrimeOfferer and fuzzMirrorOfferer are the same
       // address, then the ERC20 transfers will be filtered.
       if (
-        // When shouldIncludeNativeConsideration is false, there will be
-        // exactly one token1 consideration item per orderPairCount. And
-        // they'll all get aggregated into a single transfer.
-        !context.matchArgs.shouldIncludeNativeConsideration
+          // When shouldIncludeNativeConsideration is false, there will be
+          // exactly one token1 consideration item per orderPairCount. And
+          // they'll all get aggregated into a single transfer.
+          !context.matchArgs.shouldIncludeNativeConsideration
       ) {
-        // This checks that the ERC20 transfers were all aggregated into
-        // a single transfer.
-        vm.expectEmit(true, true, false, true, address(token1));
-        emit Transfer(
-          address(fuzzMirrorOfferer.addr), // from
-          address(fuzzPrimeOfferer.addr), // to
-          context.matchArgs.amount * context.matchArgs.orderPairCount
-        );
+          // This checks that the ERC20 transfers were all aggregated into
+          // a single transfer.
+          vm.expectEmit(true, true, false, true, address(token1));
+          emit Transfer(
+              address(fuzzMirrorOfferer.addr), // from
+              address(fuzzPrimeOfferer.addr), // to
+              context.matchArgs.amount * context.matchArgs.orderPairCount
+          );
       }
 
       if (
-        context
-          .matchArgs
-          // When considerationItemsPerPrimeOrderCount is 3, there will be
-          // exactly one token2 consideration item per orderPairCount.
-          // And they'll all get aggregated into a single transfer.
-          .considerationItemsPerPrimeOrderCount >= 3
+          context
+              .matchArgs
+              // When considerationItemsPerPrimeOrderCount is 3, there will be
+              // exactly one token2 consideration item per orderPairCount.
+              // And they'll all get aggregated into a single transfer.
+              .considerationItemsPerPrimeOrderCount >= 3
       ) {
-        vm.expectEmit(true, true, false, true, address(token2));
-        emit Transfer(
-          address(fuzzMirrorOfferer.addr), // from
-          address(fuzzPrimeOfferer.addr), // to
-          context.matchArgs.amount * context.matchArgs.orderPairCount
-        );
+          vm.expectEmit(true, true, false, true, address(token2));
+          emit Transfer(
+              address(fuzzMirrorOfferer.addr), // from
+              address(fuzzPrimeOfferer.addr), // to
+              context.matchArgs.amount * context.matchArgs.orderPairCount
+          );
       }
     }
 
     // Store the native token balances before the call for later reference.
     infra.callerBalanceBefore = address(this).balance;
     infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
-    for (uint256 i; i < infra.advancedOrders.length; i++) {
-      
-    }
+
     // Make the call to Seaport.
     context.seaport.matchAdvancedOrders{
       value: (context.matchArgs.amount * context.matchArgs.orderPairCount) + context.matchArgs.excessNativeTokens
@@ -383,7 +379,6 @@ contract ODNFVZoneTest is SetUp {
       assertEq(infra.callerBalanceBefore, infra.callerBalanceAfter);
     }
   }
-
   function deployOrFind(address owner) public returns (address payable) {
     address proxy = vault721.getProxy(owner);
     if (proxy == address(0)) {
@@ -392,7 +387,6 @@ contract ODNFVZoneTest is SetUp {
       return payable(address(proxy));
     }
   }
-
   function _buildOrdersAndFulfillmentsMirrorOrdersFromFuzzArgs(Context memory context)
     internal
     returns (Order[] memory, Fulfillment[] memory)
@@ -408,16 +402,19 @@ contract ODNFVZoneTest is SetUp {
       FulfillmentLib.empty(),
       new Fulfillment[](context.matchArgs.orderPairCount * 2)
     );
-
+     address offererProxy;
     // Iterate once for each orderPairCount, which is
     // used as the number of order pairs to make here.
+    (,,address conduitController) = seaport.information();
     for (i = 0; i < context.matchArgs.orderPairCount; i++) {
       // Mint the NFTs for the prime offerer to sell.
-      vm.startPrank(safeManagerAddress);
-      address offererProxy = deployOrFind(fuzzPrimeOfferer.addr);
-      vault721.mint(offererProxy, context.matchArgs.tokenId + i);
-      vault721.mint(offererProxy, (context.matchArgs.tokenId + i) * 2);
+      offererProxy = deployOrFind(fuzzPrimeOfferer.addr);
+      vm.startPrank(offererProxy);
+      safeManager.openSAFE('ARB', offererProxy);
       vm.stopPrank();
+
+
+    
       // Build the OfferItem array for the prime offerer's order.
       infra.offerItemArray = _buildPrimeOfferItemArray(context, i);
       // Build the ConsiderationItem array for the prime offerer's order.
@@ -456,6 +453,9 @@ contract ODNFVZoneTest is SetUp {
       infra.orders[i + context.matchArgs.orderPairCount] =
         _toOrder(context.seaport, infra.orderComponents, fuzzMirrorOfferer.key);
     }
+
+      vm.prank(fuzzPrimeOfferer.addr);
+      vault721.setApprovalForAll(address(conduit), true);
 
     bytes32[] memory orderHashes = new bytes32[](context.matchArgs.orderPairCount * 2);
 
@@ -591,7 +591,7 @@ contract ODNFVZoneTest is SetUp {
     return offerItemArray;
   }
 
-  function _buildMirrorConsiderationItemArray(
+  function buildMirrorConsiderationItemArray(
     Context memory context,
     uint256 i
   ) internal view returns (ConsiderationItem[] memory _considerationItemArray) {
