@@ -79,7 +79,6 @@ contract ODNFVZoneTest is SetUp {
   // ideally these live in a base test class
   string constant SINGLE_721 = 'single 721';
   string constant VALIDATION_ZONE = 'validation zone';
-  string constant ADV_VALIDATION_ZONE = 'adv validation zone';
 
   bytes32 public constant COLLATERAL = keccak256('COLLATERAL');
   bytes32 public constant DEBT = keccak256('DEBT');
@@ -256,7 +255,7 @@ contract ODNFVZoneTest is SetUp {
 
     fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
     fuzzMirrorProxy = deployOrFind(fuzzMirrorOfferer.addr);
-    
+
       vm.startPrank(fuzzPrimeProxy);
       context.matchArgs.tokenId =     
       safeManager.openSAFE('ARB', fuzzPrimeProxy);
@@ -658,7 +657,7 @@ contract ODNFVZoneTest is SetUp {
 
     bytes32 zoneHash = _getExtraData(context.matchArgs.tokenId).generateZoneHash();
 
-    _orderParameters = OrderParametersLib.fromDefault(ADV_VALIDATION_ZONE).withOffer(_offerItemArray).withConsideration(
+    _orderParameters = OrderParametersLib.fromDefault(VALIDATION_ZONE).withOffer(_offerItemArray).withConsideration(
       _considerationItemArray
     ).withZone(address(zone)).withZoneHash(zoneHash).withOrderType(OrderType.FULL_RESTRICTED).withConduitKey(
       context.matchArgs.tokenId % 2 == 0 ? conduitKeyOne : bytes32(0)
