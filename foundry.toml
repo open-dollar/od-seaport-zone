@@ -10,6 +10,7 @@ wrap_comments = false
 solc = "0.8.24"
 
 [profile.default]
+evm_version = "cancun"
 auto_detect_solc = true
 src = "src"
 out = "out"
