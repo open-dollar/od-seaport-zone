@@ -27,7 +27,6 @@ import {ODNFVZoneInterface} from '../interfaces/ODNFVZoneInterface.sol';
  * @notice ODSeaportZone is an implementation of SIP-15. It verifies that the dynamic traits of an NFT
  *         have not changed between the time of order creation and the time of order fulfillment.
  */
-
 contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
   using SIP6Decoder for bytes;
 
@@ -221,8 +220,6 @@ contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
     isNotPaused
     returns (bytes4 validOrderMagicValue)
   {
-    
-    
     // Get zoneHash from zoneParameters
     // note: keccak of fixed data array is going to be zoneHash
     // extraData isn't signed

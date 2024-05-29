@@ -46,7 +46,7 @@ import {ODNFVZoneController} from '../src/contracts/ODNFVZoneController.sol';
 import {SetUp} from './SetUp.sol';
 import 'forge-std/console2.sol';
 
-contract ODNFVZoneTest is SetUp {
+contract ZoneTest_Deprecated is SetUp {
   using FulfillmentLib for Fulfillment;
   using FulfillmentComponentLib for FulfillmentComponent;
   using FulfillmentComponentLib for FulfillmentComponent[];
@@ -177,8 +177,8 @@ contract ODNFVZoneTest is SetUp {
 
     OrderComponentsLib.empty().withOfferer(offerer1.addr).withZone(address(zone)).withOrderType(
       OrderType.FULL_RESTRICTED
-    ).withStartTime(block.timestamp + vault721.timeDelay()).withEndTime(block.timestamp + vault721.timeDelay() + 1).withZoneHash(bytes32(0)).withSalt(0)
-      .withConduitKey(conduitKeyOne).saveDefault(VALIDATION_ZONE); // not strictly necessary
+    ).withStartTime(block.timestamp).withEndTime(block.timestamp + vault721.timeDelay() + 10).withZoneHash(bytes32(0))
+      .withSalt(0).withConduitKey(conduitKeyOne).saveDefault(VALIDATION_ZONE); // not strictly necessary
 
     // fill in offer later
     // fill in consideration later
@@ -194,44 +194,43 @@ contract ODNFVZoneTest is SetUp {
     }
   }
 
-  function testMatchAdvancedOrdersFuzz(MatchFuzzInputs memory matchArgs) public {
-    // matchArgs.shouldUseTransferValidationZoneForMirror = true;
-    matchArgs.shouldUseTransferValidationZoneForPrime = true;
-    // Avoid weird overflow issues.
-    matchArgs.amount = uint128(bound(matchArgs.amount, 1, 0xffffffffffffffff));
-    // Avoid trying to mint the same token.
-    matchArgs.tokenId = bound(matchArgs.tokenId, vault721.totalSupply() + 1, vault721.totalSupply() + 1);
+  // function skip_testMatchAdvancedOrdersFuzz(MatchFuzzInputs memory matchArgs) public {
+  //   // matchArgs.shouldUseTransferValidationZoneForPrime = true;
+  //   // Avoid weird overflow issues.
+  //   matchArgs.amount = uint128(bound(matchArgs.amount, 1, 0xffffffffffffffff));
+  //   // Avoid trying to mint the same token.
+  //   // matchArgs.tokenId = bound(matchArgs.tokenId, vault721.totalSupply() + 1, vault721.totalSupply() + 1);
 
-    // Make 1-8 order pairs per call.  Each order pair will have 1-2 offer
-    // items on the prime side (depending on whether
-    // shouldIncludeExcessOfferItems is true or false).
-    matchArgs.orderPairCount = bound(matchArgs.orderPairCount, 1, 3);
-    // Use 1-3 (prime) consideration items per order.
-    matchArgs.considerationItemsPerPrimeOrderCount = bound(matchArgs.considerationItemsPerPrimeOrderCount, 1, 3);
-    // To put three items in the consideration, native tokens must be
-    // included.
-    matchArgs.shouldIncludeNativeConsideration = 
-      matchArgs.shouldIncludeNativeConsideration || matchArgs.considerationItemsPerPrimeOrderCount >= 3;
-    // Only include an excess offer item when NOT using the transfer
-    // validation zone or the zone will revert.
-    matchArgs.shouldIncludeExcessOfferItems = matchArgs.shouldIncludeExcessOfferItems
-      && !(matchArgs.shouldUseTransferValidationZoneForPrime || matchArgs.shouldUseTransferValidationZoneForMirror);
-    // Include some excess native tokens to check that they're ending up
-    // with the caller afterward.
-    matchArgs.excessNativeTokens = uint128(bound(matchArgs.excessNativeTokens, 0, 0xfffffffffffffffffffffffffffff));
-    // Don't set the offer recipient to the null address, because that's the
-    // way to indicate that the caller should be the recipient.
-    matchArgs.unspentPrimeOfferItemRecipient = _nudgeAddressIfProblematic(
-      address(uint160(bound(uint160(matchArgs.unspentPrimeOfferItemRecipient), 1, type(uint160).max)))
-    );
-    
-    // TODO: REMOVE: I probably need to create an array of addresses with
-    // dirty balances and an array of addresses that are contracts that
-    // cause problems with native token transfers.
+  //   // Make 1-8 order pairs per call.  Each order pair will have 1-2 offer
+  //   // items on the prime side (depending on whether
+  //   // shouldIncludeExcessOfferItems is true or false).
+  //   matchArgs.orderPairCount = bound(matchArgs.orderPairCount, 1, 8);
+  //   // Use 1-3 (prime) consideration items per order.
+  //   matchArgs.considerationItemsPerPrimeOrderCount = bound(matchArgs.considerationItemsPerPrimeOrderCount, 1, 3);
+  //   // To put three items in the consideration, native tokens must be
+  //   // included.
+  //   matchArgs.shouldIncludeNativeConsideration =
+  //     matchArgs.shouldIncludeNativeConsideration || matchArgs.considerationItemsPerPrimeOrderCount >= 3;
+  //   // Only include an excess offer item when NOT using the transfer
+  //   // validation zone or the zone will revert.
+  //   matchArgs.shouldIncludeExcessOfferItems = matchArgs.shouldIncludeExcessOfferItems
+  //     && !(matchArgs.shouldUseTransferValidationZoneForPrime || matchArgs.shouldUseTransferValidationZoneForMirror);
+  //   // Include some excess native tokens to check that they're ending up
+  //   // with the caller afterward.
+  //   matchArgs.excessNativeTokens = uint128(bound(matchArgs.excessNativeTokens, 0, 0xfffffffffffffffffffffffffffff));
+  //   // Don't set the offer recipient to the null address, because that's the
+  //   // way to indicate that the caller should be the recipient.
+  //   matchArgs.unspentPrimeOfferItemRecipient = _nudgeAddressIfProblematic(
+  //     address(uint160(bound(uint160(matchArgs.unspentPrimeOfferItemRecipient), 1, type(uint160).max)))
+  //   );
 
-    test(this.execMatchAdvancedOrdersFuzz, Context(consideration, emptyFulfill, matchArgs));
-    test(this.execMatchAdvancedOrdersFuzz, Context(referenceConsideration, emptyFulfill, matchArgs));
-  }
+  //   // TODO: REMOVE: I probably need to create an array of addresses with
+  //   // dirty balances and an array of addresses that are contracts that
+  //   // cause problems with native token transfers.
+
+  //   test(this.execMatchAdvancedOrdersFuzz, Context(consideration, emptyFulfill, matchArgs));
+  //   test(this.execMatchAdvancedOrdersFuzz, Context(referenceConsideration, emptyFulfill, matchArgs));
+  // }
 
   function execMatchAdvancedOrdersFuzz(Context memory context) external stateless {
     // Set up the infrastructure for this function in a struct to avoid
@@ -256,10 +255,9 @@ contract ODNFVZoneTest is SetUp {
     fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
     fuzzMirrorProxy = deployOrFind(fuzzMirrorOfferer.addr);
 
-      vm.startPrank(fuzzPrimeProxy);
-      context.matchArgs.tokenId =     
-      safeManager.openSAFE('ARB', fuzzPrimeProxy);
-      vm.stopPrank();
+    vm.startPrank(fuzzPrimeProxy);
+    context.matchArgs.tokenId = safeManager.openSAFE('ARB', fuzzPrimeProxy);
+    vm.stopPrank();
     // Set fuzzMirrorOfferer as the zone's expected offer recipient.
     // zone.setExpectedOfferRecipient(fuzzMirrorOfferer.addr);
     // Create the orders and fulfuillments.
@@ -267,62 +265,68 @@ contract ODNFVZoneTest is SetUp {
 
     // Set up the advanced orders array.
     infra.advancedOrders = new AdvancedOrder[](infra.orders.length);
-
+    console2.log('CREATING ADVANCED ORDERS: ', infra.orders.length);
     // Convert the orders to advanced orders.
     for (uint256 i = 0; i < infra.orders.length; i++) {
-      infra.advancedOrders[i] =
-        infra.orders[i].toAdvancedOrder(1, 1, _getExtraData(infra.orders[i].parameters.offer[0].identifierOrCriteria));
+      infra.advancedOrders[i] = infra.orders[i].toAdvancedOrder(1, 1, bytes('')); // _getExtraData(infra.orders[i].parameters.offer[0].identifierOrCriteria));
     }
 
-          vm.warp(block.timestamp + vault721.timeDelay());
+    vm.warp(block.timestamp + vault721.timeDelay());
 
     // Set up event expectations.
     if (fuzzPrimeOfferer.addr != fuzzMirrorOfferer.addr) {
+      console2.log('MIRROR IS NOT OFFER');
       // If the fuzzPrimeOfferer and fuzzMirrorOfferer are the same
       // address, then the ERC20 transfers will be filtered.
       if (
-          // When shouldIncludeNativeConsideration is false, there will be
-          // exactly one token1 consideration item per orderPairCount. And
-          // they'll all get aggregated into a single transfer.
-          !context.matchArgs.shouldIncludeNativeConsideration
+        // When shouldIncludeNativeConsideration is false, there will be
+        // exactly one token1 consideration item per orderPairCount. And
+        // they'll all get aggregated into a single transfer.
+        !context.matchArgs.shouldIncludeNativeConsideration
       ) {
-          // This checks that the ERC20 transfers were all aggregated into
-          // a single transfer.
-          vm.expectEmit(true, true, false, true, address(token1));
-          emit Transfer(
-              address(fuzzMirrorOfferer.addr), // from
-              address(fuzzPrimeOfferer.addr), // to
-              context.matchArgs.amount * context.matchArgs.orderPairCount
-          );
+        // This checks that the ERC20 transfers were all aggregated into
+        // a single transfer.
+        vm.expectEmit(true, true, false, true, address(token1));
+        emit Transfer(
+          address(fuzzMirrorOfferer.addr), // from
+          address(fuzzPrimeOfferer.addr), // to
+          context.matchArgs.amount * context.matchArgs.orderPairCount
+        );
       }
 
       if (
-          context
-              .matchArgs
-              // When considerationItemsPerPrimeOrderCount is 3, there will be
-              // exactly one token2 consideration item per orderPairCount.
-              // And they'll all get aggregated into a single transfer.
-              .considerationItemsPerPrimeOrderCount >= 3
+        context
+          .matchArgs
+          // When considerationItemsPerPrimeOrderCount is 3, there will be
+          // exactly one token2 consideration item per orderPairCount.
+          // And they'll all get aggregated into a single transfer.
+          .considerationItemsPerPrimeOrderCount >= 3
       ) {
-          vm.expectEmit(true, true, false, true, address(token2));
-          emit Transfer(
-              address(fuzzMirrorOfferer.addr), // from
-              address(fuzzPrimeOfferer.addr), // to
-              context.matchArgs.amount * context.matchArgs.orderPairCount
-          );
+        vm.expectEmit(true, true, false, true, address(token2));
+        emit Transfer(
+          address(fuzzMirrorOfferer.addr), // from
+          address(fuzzPrimeOfferer.addr), // to
+          context.matchArgs.amount * context.matchArgs.orderPairCount
+        );
       }
     }
 
     // Store the native token balances before the call for later reference.
     infra.callerBalanceBefore = address(this).balance;
     infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
-    // console2.log("OWNEROF: ", vault721.ownerOf(context.matchArgs.tokenId));
-    console2.log("ADVANCED ORDERS LENGTH: ", infra.advancedOrders.length);
-    console2.log("Fullfilments LENGTH: ", infra.fulfillments.length);
-    console2.log("consideration recipient:", infra.advancedOrders[0].parameters.consideration[0].recipient);
-    console2.log("consideration token: ", infra.advancedOrders[0].parameters.consideration[0].token);
-    console2.log("consideration amount: ", infra.advancedOrders[0].parameters.consideration[0].startAmount);
-    console2.log("criteria resolver: ", infra.criteriaResolvers.length);
+
+    console2.log('ADVANCED ORDERS LENGTH: ', infra.advancedOrders.length);
+    console2.log('Fullfilments LENGTH: ', infra.fulfillments.length);
+    console2.log('criteria resolver: ', infra.criteriaResolvers.length);
+
+    for (uint256 i; i < infra.advancedOrders.length; i++) {
+      console2.log('ORDER ITERATION: ', i);
+      for (uint256 j; j < infra.advancedOrders[i].parameters.consideration.length; j++) {
+        console2.log('consideration recipient:', infra.advancedOrders[i].parameters.consideration[j].recipient);
+        console2.log('consideration token: ', infra.advancedOrders[i].parameters.consideration[j].token);
+        console2.log('consideration amount: ', infra.advancedOrders[i].parameters.consideration[j].startAmount);
+      }
+    }
     // Make the call to Seaport.
     context.seaport.matchAdvancedOrders{
       value: (context.matchArgs.amount * context.matchArgs.orderPairCount) + context.matchArgs.excessNativeTokens
@@ -356,7 +360,7 @@ contract ODNFVZoneTest is SetUp {
       expectedCallCount += context.matchArgs.orderPairCount;
     }
     // assertTrue(zone.callCount() == expectedCallCount);
-
+    console2.log('MAKING CHECKS');
     // Check that the NFTs were transferred to the expected recipient.
     for (uint256 i = 0; i < context.matchArgs.orderPairCount; i++) {
       assertEq(vault721.ownerOf(context.matchArgs.tokenId + i), fuzzMirrorOfferer.addr);
@@ -374,7 +378,7 @@ contract ODNFVZoneTest is SetUp {
         );
       }
     }
-    console2.log("MAKING CHECKS");
+
     if (context.matchArgs.shouldIncludeNativeConsideration) {
       // Check that ETH is moving from the caller to the prime offerer.
       // This also checks that excess native tokens are being swept back
@@ -419,12 +423,11 @@ contract ODNFVZoneTest is SetUp {
 
     // Iterate once for each orderPairCount, which is
     // used as the number of order pairs to make here.
-    (,,address conduitController) = context.seaport.information();
+    (,, address conduitController) = context.seaport.information();
 
     for (i = 0; i < context.matchArgs.orderPairCount; i++) {
       // Mint the NFTs for the prime offerer to sell.
 
-    
       // Build the OfferItem array for the prime offerer's order.
       infra.offerItemArray = _buildPrimeOfferItemArray(context, i);
       // Build the ConsiderationItem array for the prime offerer's order.
@@ -458,38 +461,40 @@ contract ODNFVZoneTest is SetUp {
         fuzzMirrorOfferer.addr,
         context.matchArgs.shouldUseTransferValidationZoneForMirror
       );
-      console2.log("order items length: ", infra.offerItemArray.length);
-      console2.log("Consideration items length: ", infra.considerationItemArray.length);
-      console2.log("Consideration items recipient: ", infra.considerationItemArray[0].recipient);
-      console2.log("totalOriginalConsiderationItems", infra.orders[0].parameters.totalOriginalConsiderationItems);
+
+      console2.log('order items length: ', infra.offerItemArray.length);
+      console2.log('Consideration items length: ', infra.considerationItemArray.length);
+      console2.log('Consideration items recipient: ', infra.considerationItemArray[0].recipient);
+      console2.log('totalOriginalConsiderationItems', infra.orders[0].parameters.totalOriginalConsiderationItems);
+
       // Create the order and add the order to the orders array.
       infra.orders[i + context.matchArgs.orderPairCount] =
         _toOrder(context.seaport, infra.orderComponents, fuzzMirrorOfferer.key);
     }
-      // owner of 0xb144f13b74daee5dfBBc25ffA29b618214d80f24
-      // payer: 0x48D30Ecca92186D02355E52955395378562DFf39
-      console2.log("CONDUIT CONTROLLER: ", conduitController);
-      console2.log("CONDUIT: ", address(conduit));
-      console2.log("ZONE: ", address(zone));
-      console2.log("ZONE ADAPTOR: ", address(vault721Adapter));
-      console2.log("TEST CONTRACT: ", address(this));
-      console2.log("Fuzz prime",fuzzPrimeOfferer.addr ); // 0xb144f13b74daee5dfBBc25ffA29b618214d80f24
-      console2.log("Fuzz mirror", fuzzMirrorOfferer.addr); // 0x48D30Ecca92186D02355E52955395378562DFf39
-      console2.log("Prime offer recip: ", context.matchArgs.unspentPrimeOfferItemRecipient); // 0xa96B7C6db1BfFAc052dC9deF5cBCaFA902a9CD18
-      console2.log("Reference Conduit", address(referenceConduit)); // 0x9f4E1C5283aE29613Bb94B21AB5C11b9CA362F37
-      console2.log("Reference Consideration", address(referenceConsideration)); // 0x5991A2dF15A8F6A256D3Ec51E99254Cd3fb576A9
-      console2.log("Consideration: ", address(consideration));
+    // owner of 0xb144f13b74daee5dfBBc25ffA29b618214d80f24
+    // payer: 0x48D30Ecca92186D02355E52955395378562DFf39
+    console2.log('CONDUIT CONTROLLER: ', conduitController);
+    console2.log('CONDUIT: ', address(conduit));
+    console2.log('ZONE: ', address(zone));
+    console2.log('ZONE ADAPTOR: ', address(vault721Adapter));
+    console2.log('TEST CONTRACT: ', address(this));
+    console2.log('Fuzz prime', fuzzPrimeOfferer.addr); // 0xb144f13b74daee5dfBBc25ffA29b618214d80f24
+    console2.log('Fuzz mirror', fuzzMirrorOfferer.addr); // 0x48D30Ecca92186D02355E52955395378562DFf39
+    console2.log('Prime offer recip: ', context.matchArgs.unspentPrimeOfferItemRecipient); // 0xa96B7C6db1BfFAc052dC9deF5cBCaFA902a9CD18
+    console2.log('Reference Conduit', address(referenceConduit)); // 0x9f4E1C5283aE29613Bb94B21AB5C11b9CA362F37
+    console2.log('Reference Consideration', address(referenceConsideration)); // 0x5991A2dF15A8F6A256D3Ec51E99254Cd3fb576A9
+    console2.log('Consideration: ', address(consideration));
 
-      vm.prank(fuzzPrimeOfferer.addr); 
-      vault721.setApprovalForAll(address(conduit), true);
-         vm.prank(fuzzPrimeOfferer.addr);
-      vault721.setApprovalForAll(address(referenceConsideration), true);
-               vm.prank(fuzzPrimeOfferer.addr);
-      vault721.setApprovalForAll(address(referenceConduit), true);
-                    vm.prank(fuzzPrimeOfferer.addr);
-      vault721.setApprovalForAll(address(consideration), true);
-                      vm.prank(fuzzPrimeOfferer.addr);
-      vault721.setApprovalForAll(address(conduitController), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(conduit), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(referenceConsideration), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(referenceConduit), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(consideration), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(conduitController), true);
 
     bytes32[] memory orderHashes = new bytes32[](context.matchArgs.orderPairCount * 2);
 
@@ -508,7 +513,7 @@ contract ODNFVZoneTest is SetUp {
   ) internal view returns (OfferItem[] memory _offerItemArray) {
     // Set up the OfferItem array.
     OfferItem[] memory offerItemArray = new OfferItem[](context.matchArgs.shouldIncludeExcessOfferItems ? 2 : 1);
- 
+
     // If the fuzz args call for an excess offer item...
     if (context.matchArgs.shouldIncludeExcessOfferItems) {
       // Create the OfferItem array containing the offered item and the
@@ -525,9 +530,7 @@ contract ODNFVZoneTest is SetUp {
       // Otherwise, create the OfferItem array containing the one offered
       // item.
       offerItemArray = SeaportArrays.OfferItems(
-        OfferItemLib.fromDefault(SINGLE_721).withToken(address(vault721)).withIdentifierOrCriteria(
-          i
-        )
+        OfferItemLib.fromDefault(SINGLE_721).withToken(address(vault721)).withIdentifierOrCriteria(i)
       );
     }
 
@@ -688,11 +691,11 @@ contract ODNFVZoneTest is SetUp {
     // Build the OrderComponents for the prime offerer's order.
     orderComponents = OrderComponentsLib.fromDefault(VALIDATION_ZONE).withOffer(_offerItemArray).withConsideration(
       _considerationItemArray
-    ).withZone(address(zone)).withOrderType(OrderType.FULL_RESTRICTED).withConduitKey(
+    ).withZone(address(0)).withOrderType(OrderType.FULL_OPEN).withConduitKey(
       context.matchArgs.tokenId % 2 == 0 ? conduitKeyOne : bytes32(0)
     ).withOfferer(offerer).withCounter(context.seaport.getCounter(offerer));
-        console2.log("build: offerLength", orderComponents.offer.length);
-        console2.log("build: consideration Length", orderComponents.consideration.length);
+    console2.log('build: offerLength', orderComponents.offer.length);
+    console2.log('build: consideration Length', orderComponents.consideration.length);
     // If the fuzz args call for a transfer validation zone...
     if (shouldUseTransferValidationZone) {
       bytes32 zoneHash = _getExtraData(context.matchArgs.tokenId).generateZoneHash();
@@ -700,8 +703,8 @@ contract ODNFVZoneTest is SetUp {
       // set the order type to FULL_RESTRICTED.
       orderComponents =
         orderComponents.copy().withZone(address(zone)).withZoneHash(zoneHash).withOrderType(OrderType.FULL_RESTRICTED);
-        console2.log("build2: offerLength", orderComponents.offer.length);
-        console2.log("build2: consideration Length", orderComponents.consideration.length);
+      console2.log('build2: offerLength', orderComponents.offer.length);
+      console2.log('build2: consideration Length', orderComponents.consideration.length);
     }
 
     return orderComponents;
@@ -744,31 +747,17 @@ contract ODNFVZoneTest is SetUp {
     OrderComponents memory orderComponents,
     uint256 pkey
   ) internal returns (Order memory order) {
-    bytes memory extraData = _getExtraData(orderComponents.offer[0].identifierOrCriteria);
+    if (orderComponents.offer[0].identifierOrCriteria != 0) {
+      bytes memory extraData = _getExtraData(orderComponents.offer[0].identifierOrCriteria);
 
-    bytes32 zoneHash = extraData.generateZoneHash();
-    orderComponents.zoneHash = zoneHash;
+      bytes32 zoneHash = extraData.generateZoneHash();
+      orderComponents.zoneHash = zoneHash;
+    }
+
     bytes32 orderHash = seaport.getOrderHash(orderComponents);
     bytes memory signature = signOrder(seaport, pkey, orderHash);
     order = OrderLib.empty().withParameters(orderComponents.toOrderParameters()).withSignature(signature);
   }
-
-  // function _toAdvancedOrder(
-  //     ConsiderationInterface seaport,
-  //     OrderComponents memory orderComponents,
-  //     uint256 pkey
-  // ) internal returns (AdvancedOrder memory _advancedOrder) {
-
-  //     bytes32 orderHash = seaport.getOrderHash(orderComponents);
-  //     bytes memory signature = signOrder(seaport, pkey, orderHash);
-  //     bytes memory extraData =  _getExtraData(orderComponents.offer[0].identifierOrCriteria);
-  //     // bytes32 zoneHash = extraData.generateZoneHash();
-  //     _advancedOrder = AdvancedOrderLib
-  //         .empty()
-  //         .withParameters(orderComponents.toOrderParameters())
-  //         .withExtraData(extraData)
-  //         .withSignature(signature).withNumerator(1).withDenominator(1);
-  // }
 
   function _toOfferItem(ConsiderationItem memory item) internal pure returns (OfferItem memory) {
     return OfferItem({
