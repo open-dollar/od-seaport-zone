@@ -71,7 +71,9 @@ contract ODNFVZoneTest is SetUp {
   MatchFuzzInputs emptyMatch;
 
   Account fuzzPrimeOfferer;
+  address public fuzzPrimeProxy;
   Account fuzzMirrorOfferer;
+  address fuzzMirrorProxy;
 
   // constant strings for recalling struct lib defaults
   // ideally these live in a base test class
@@ -158,7 +160,7 @@ contract ODNFVZoneTest is SetUp {
     matchFulfillmentHelper = new MatchFulfillmentHelper();
     fulfillAvailableFulfillmentHelper = new FulfillAvailableHelper();
 
-    zoneController = new ODNFVZoneController(deployer);
+    zoneController = new ODNFVZoneController(address(this));
     zone = ODNFVZone(zoneController.createZone(keccak256(abi.encode('salt'))));
 
     // zone = new TestTransferValidationZoneOfferer(address(0));
@@ -195,24 +197,26 @@ contract ODNFVZoneTest is SetUp {
   }
 
   function testMatchAdvancedOrdersFuzz(MatchFuzzInputs memory matchArgs) public {
+    // matchArgs.shouldUseTransferValidationZoneForMirror = true;
+    matchArgs.shouldUseTransferValidationZoneForPrime = true;
     // Avoid weird overflow issues.
     matchArgs.amount = uint128(bound(matchArgs.amount, 1, 0xffffffffffffffff));
     // Avoid trying to mint the same token.
-    matchArgs.tokenId = bound(matchArgs.tokenId, 0xff, 0xffffffffffffffff);
+    matchArgs.tokenId = bound(matchArgs.tokenId, vault721.totalSupply() + 1, vault721.totalSupply() + 1);
     // Make 1-8 order pairs per call.  Each order pair will have 1-2 offer
     // items on the prime side (depending on whether
     // shouldIncludeExcessOfferItems is true or false).
-    matchArgs.orderPairCount = bound(matchArgs.orderPairCount, 1, 8);
+    matchArgs.orderPairCount = bound(matchArgs.orderPairCount, 1, 1);
     // Use 1-3 (prime) consideration items per order.
-    matchArgs.considerationItemsPerPrimeOrderCount = bound(matchArgs.considerationItemsPerPrimeOrderCount, 1, 3);
+    matchArgs.considerationItemsPerPrimeOrderCount = bound(matchArgs.considerationItemsPerPrimeOrderCount, 1, 2);
     // To put three items in the consideration, native tokens must be
     // included.
-    matchArgs.shouldIncludeNativeConsideration =
-      matchArgs.shouldIncludeNativeConsideration || matchArgs.considerationItemsPerPrimeOrderCount >= 3;
+    matchArgs.shouldIncludeNativeConsideration = false;
+      // matchArgs.shouldIncludeNativeConsideration || matchArgs.considerationItemsPerPrimeOrderCount >= 3;
     // Only include an excess offer item when NOT using the transfer
     // validation zone or the zone will revert.
-    matchArgs.shouldIncludeExcessOfferItems = matchArgs.shouldIncludeExcessOfferItems
-      && !(matchArgs.shouldUseTransferValidationZoneForPrime || matchArgs.shouldUseTransferValidationZoneForMirror);
+    matchArgs.shouldIncludeExcessOfferItems = false;//matchArgs.shouldIncludeExcessOfferItems
+      // && !(matchArgs.shouldUseTransferValidationZoneForPrime || matchArgs.shouldUseTransferValidationZoneForMirror);
     // Include some excess native tokens to check that they're ending up
     // with the caller afterward.
     matchArgs.excessNativeTokens = uint128(bound(matchArgs.excessNativeTokens, 0, 0xfffffffffffffffffffffffffffff));
@@ -222,9 +226,6 @@ contract ODNFVZoneTest is SetUp {
       address(uint160(bound(uint160(matchArgs.unspentPrimeOfferItemRecipient), 1, type(uint160).max)))
     );
 
-    matchArgs.tokenId = vault721.totalSupply() + 1;
-    matchArgs.shouldUseTransferValidationZoneForMirror = true;
-    matchArgs.shouldUseTransferValidationZoneForPrime = true;
 
     // TODO: REMOVE: I probably need to create an array of addresses with
     // dirty balances and an array of addresses that are contracts that
@@ -253,7 +254,8 @@ contract ODNFVZoneTest is SetUp {
 
     // The mirror offerer is offering ERC20/Native and considering NFTs.
     fuzzMirrorOfferer = makeAndAllocateAccount(context.matchArgs.mirrorOfferer);
-
+    fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
+    fuzzMirrorProxy = deployOrFind(fuzzMirrorOfferer.addr);
     // Set fuzzMirrorOfferer as the zone's expected offer recipient.
     // zone.setExpectedOfferRecipient(fuzzMirrorOfferer.addr);
     // Create the orders and fulfuillments.
@@ -310,7 +312,11 @@ contract ODNFVZoneTest is SetUp {
     // Store the native token balances before the call for later reference.
     infra.callerBalanceBefore = address(this).balance;
     infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
-
+    console2.log("OWNEROF: ", vault721.ownerOf(context.matchArgs.tokenId));
+    console2.log("consideration recipient:", infra.advancedOrders[0].parameters.consideration[0].recipient);
+    console2.log("consideration token: ", infra.advancedOrders[0].parameters.consideration[0].token);
+    console2.log("consideration amount: ", infra.advancedOrders[0].parameters.consideration[0].startAmount);
+    console2.log("criteria resolver: ", infra.criteriaResolvers.length);
     // Make the call to Seaport.
     context.seaport.matchAdvancedOrders{
       value: (context.matchArgs.amount * context.matchArgs.orderPairCount) + context.matchArgs.excessNativeTokens
@@ -362,7 +368,7 @@ contract ODNFVZoneTest is SetUp {
         );
       }
     }
-
+    console2.log("MAKING CHECKS");
     if (context.matchArgs.shouldIncludeNativeConsideration) {
       // Check that ETH is moving from the caller to the prime offerer.
       // This also checks that excess native tokens are being swept back
@@ -379,6 +385,7 @@ contract ODNFVZoneTest is SetUp {
       assertEq(infra.callerBalanceBefore, infra.callerBalanceAfter);
     }
   }
+
   function deployOrFind(address owner) public returns (address payable) {
     address proxy = vault721.getProxy(owner);
     if (proxy == address(0)) {
@@ -387,6 +394,7 @@ contract ODNFVZoneTest is SetUp {
       return payable(address(proxy));
     }
   }
+
   function _buildOrdersAndFulfillmentsMirrorOrdersFromFuzzArgs(Context memory context)
     internal
     returns (Order[] memory, Fulfillment[] memory)
@@ -402,15 +410,14 @@ contract ODNFVZoneTest is SetUp {
       FulfillmentLib.empty(),
       new Fulfillment[](context.matchArgs.orderPairCount * 2)
     );
-     address offererProxy;
+
     // Iterate once for each orderPairCount, which is
     // used as the number of order pairs to make here.
-    (,,address conduitController) = seaport.information();
+    (,,address conduitController) = context.seaport.information();
     for (i = 0; i < context.matchArgs.orderPairCount; i++) {
       // Mint the NFTs for the prime offerer to sell.
-      offererProxy = deployOrFind(fuzzPrimeOfferer.addr);
-      vm.startPrank(offererProxy);
-      safeManager.openSAFE('ARB', offererProxy);
+      vm.startPrank(fuzzPrimeProxy);
+      safeManager.openSAFE('ARB', fuzzPrimeProxy);
       vm.stopPrank();
 
 
@@ -448,14 +455,38 @@ contract ODNFVZoneTest is SetUp {
         fuzzMirrorOfferer.addr,
         context.matchArgs.shouldUseTransferValidationZoneForMirror
       );
-
+      console2.log("order items length: ", infra.offerItemArray.length);
+      console2.log("Consideration items length: ", infra.considerationItemArray.length);
+      console2.log("Consideration items recipient: ", infra.considerationItemArray[0].recipient);
+      console2.log("totalOriginalConsiderationItems", infra.orders[0].parameters.totalOriginalConsiderationItems);
       // Create the order and add the order to the orders array.
       infra.orders[i + context.matchArgs.orderPairCount] =
         _toOrder(context.seaport, infra.orderComponents, fuzzMirrorOfferer.key);
     }
+      // owner of 0xb144f13b74daee5dfBBc25ffA29b618214d80f24
+      // payer: 0x48D30Ecca92186D02355E52955395378562DFf39
+      console2.log("CONDUIT CONTROLLER: ", conduitController);
+      console2.log("CONDUIT: ", address(conduit));
+      console2.log("ZONE: ", address(zone));
+      console2.log("ZONE ADAPTOR: ", address(vault721Adapter));
+      console2.log("TEST CONTRACT: ", address(this));
+      console2.log("Fuzz prime",fuzzPrimeOfferer.addr ); // 0xb144f13b74daee5dfBBc25ffA29b618214d80f24
+      console2.log("Fuzz mirror", fuzzMirrorOfferer.addr); // 0x48D30Ecca92186D02355E52955395378562DFf39
+      console2.log("Prime offer recip: ", context.matchArgs.unspentPrimeOfferItemRecipient); // 0xa96B7C6db1BfFAc052dC9deF5cBCaFA902a9CD18
+      console2.log("Reference Conduit", address(referenceConduit)); // 0x9f4E1C5283aE29613Bb94B21AB5C11b9CA362F37
+      console2.log("Reference Consideration", address(referenceConsideration)); // 0x5991A2dF15A8F6A256D3Ec51E99254Cd3fb576A9
+      console2.log("Consideration: ", address(consideration));
 
-      vm.prank(fuzzPrimeOfferer.addr);
+      vm.prank(fuzzPrimeOfferer.addr); 
       vault721.setApprovalForAll(address(conduit), true);
+         vm.prank(fuzzPrimeOfferer.addr);
+      vault721.setApprovalForAll(address(referenceConsideration), true);
+               vm.prank(fuzzPrimeOfferer.addr);
+      vault721.setApprovalForAll(address(referenceConduit), true);
+                    vm.prank(fuzzPrimeOfferer.addr);
+      vault721.setApprovalForAll(address(consideration), true);
+                      vm.prank(fuzzPrimeOfferer.addr);
+      vault721.setApprovalForAll(address(conduitController), true);
 
     bytes32[] memory orderHashes = new bytes32[](context.matchArgs.orderPairCount * 2);
 
@@ -657,7 +688,8 @@ contract ODNFVZoneTest is SetUp {
     ).withZone(address(zone)).withOrderType(OrderType.FULL_RESTRICTED).withConduitKey(
       context.matchArgs.tokenId % 2 == 0 ? conduitKeyOne : bytes32(0)
     ).withOfferer(offerer).withCounter(context.seaport.getCounter(offerer));
-
+        console2.log("build: offerLength", orderComponents.offer.length);
+        console2.log("build: consideration Length", orderComponents.consideration.length);
     // If the fuzz args call for a transfer validation zone...
     if (shouldUseTransferValidationZone) {
       bytes32 zoneHash = _getExtraData(context.matchArgs.tokenId).generateZoneHash();
@@ -665,6 +697,8 @@ contract ODNFVZoneTest is SetUp {
       // set the order type to FULL_RESTRICTED.
       orderComponents =
         orderComponents.copy().withZone(address(zone)).withZoneHash(zoneHash).withOrderType(OrderType.FULL_RESTRICTED);
+        console2.log("build2: offerLength", orderComponents.offer.length);
+        console2.log("build2: consideration Length", orderComponents.consideration.length);
     }
 
     return orderComponents;

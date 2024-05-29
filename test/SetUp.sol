@@ -39,7 +39,6 @@ contract SetUp is BaseOrderTest {
   IVault721 public vault721;
   IODSafeManager public safeManager;
   address payable public seaportMainnetAddress = payable(address(0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC)); //seaport 1.5 on arb mainnet
-  CoreSeaport public seaport;
   ODNFVZoneInterface public ODNFVzone;
   ODNFVZoneController public zoneController;
 
@@ -47,13 +46,13 @@ contract SetUp is BaseOrderTest {
     super.setUp();
     //create arb mainnet fork;
     vm.createSelectFork(vm.envString('ARB_MAINNET_RPC'));
-    vm.deal(deployer, 1000 ether);
+    // vm.deal(deployer, 1000 ether);
     vm.startPrank(deployer);
-    seaport = CoreSeaport(seaportMainnetAddress);
     zoneController = new ODNFVZoneController(deployer);
     ODNFVzone = ODNFVZoneInterface(zoneController.createZone(keccak256(abi.encode('salt'))));
     vault721 = IVault721(vault721Address);
     vault721Adapter = new Vault721Adapter(vault721);
     safeManager = IODSafeManager(safeManagerAddress);
+    vm.stopPrank();
   }
 }
