@@ -164,7 +164,6 @@ contract ODNFVZoneTest is SetUp {
     zone = ODNFVZone(zoneController.createZone(keccak256(abi.encode('salt'))));
 
     // zone = new TestTransferValidationZoneOfferer(address(0));
-    testZone = new TestZone();
 
     // create a default consideration for a single 721;
     // note that it does not have recipient, token or
@@ -203,20 +202,21 @@ contract ODNFVZoneTest is SetUp {
     matchArgs.amount = uint128(bound(matchArgs.amount, 1, 0xffffffffffffffff));
     // Avoid trying to mint the same token.
     matchArgs.tokenId = bound(matchArgs.tokenId, vault721.totalSupply() + 1, vault721.totalSupply() + 1);
+
     // Make 1-8 order pairs per call.  Each order pair will have 1-2 offer
     // items on the prime side (depending on whether
     // shouldIncludeExcessOfferItems is true or false).
-    matchArgs.orderPairCount = bound(matchArgs.orderPairCount, 1, 1);
+    matchArgs.orderPairCount = bound(matchArgs.orderPairCount, 1, 3);
     // Use 1-3 (prime) consideration items per order.
-    matchArgs.considerationItemsPerPrimeOrderCount = bound(matchArgs.considerationItemsPerPrimeOrderCount, 1, 2);
+    matchArgs.considerationItemsPerPrimeOrderCount = bound(matchArgs.considerationItemsPerPrimeOrderCount, 1, 3);
     // To put three items in the consideration, native tokens must be
     // included.
-    matchArgs.shouldIncludeNativeConsideration = false;
-      // matchArgs.shouldIncludeNativeConsideration || matchArgs.considerationItemsPerPrimeOrderCount >= 3;
+    matchArgs.shouldIncludeNativeConsideration = 
+      matchArgs.shouldIncludeNativeConsideration || matchArgs.considerationItemsPerPrimeOrderCount >= 3;
     // Only include an excess offer item when NOT using the transfer
     // validation zone or the zone will revert.
-    matchArgs.shouldIncludeExcessOfferItems = false;//matchArgs.shouldIncludeExcessOfferItems
-      // && !(matchArgs.shouldUseTransferValidationZoneForPrime || matchArgs.shouldUseTransferValidationZoneForMirror);
+    matchArgs.shouldIncludeExcessOfferItems = matchArgs.shouldIncludeExcessOfferItems
+      && !(matchArgs.shouldUseTransferValidationZoneForPrime || matchArgs.shouldUseTransferValidationZoneForMirror);
     // Include some excess native tokens to check that they're ending up
     // with the caller afterward.
     matchArgs.excessNativeTokens = uint128(bound(matchArgs.excessNativeTokens, 0, 0xfffffffffffffffffffffffffffff));
@@ -225,8 +225,7 @@ contract ODNFVZoneTest is SetUp {
     matchArgs.unspentPrimeOfferItemRecipient = _nudgeAddressIfProblematic(
       address(uint160(bound(uint160(matchArgs.unspentPrimeOfferItemRecipient), 1, type(uint160).max)))
     );
-
-
+    
     // TODO: REMOVE: I probably need to create an array of addresses with
     // dirty balances and an array of addresses that are contracts that
     // cause problems with native token transfers.
@@ -254,8 +253,14 @@ contract ODNFVZoneTest is SetUp {
 
     // The mirror offerer is offering ERC20/Native and considering NFTs.
     fuzzMirrorOfferer = makeAndAllocateAccount(context.matchArgs.mirrorOfferer);
+
     fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
     fuzzMirrorProxy = deployOrFind(fuzzMirrorOfferer.addr);
+    
+      vm.startPrank(fuzzPrimeProxy);
+      context.matchArgs.tokenId =     
+      safeManager.openSAFE('ARB', fuzzPrimeProxy);
+      vm.stopPrank();
     // Set fuzzMirrorOfferer as the zone's expected offer recipient.
     // zone.setExpectedOfferRecipient(fuzzMirrorOfferer.addr);
     // Create the orders and fulfuillments.
@@ -312,7 +317,9 @@ contract ODNFVZoneTest is SetUp {
     // Store the native token balances before the call for later reference.
     infra.callerBalanceBefore = address(this).balance;
     infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
-    console2.log("OWNEROF: ", vault721.ownerOf(context.matchArgs.tokenId));
+    // console2.log("OWNEROF: ", vault721.ownerOf(context.matchArgs.tokenId));
+    console2.log("ADVANCED ORDERS LENGTH: ", infra.advancedOrders.length);
+    console2.log("Fullfilments LENGTH: ", infra.fulfillments.length);
     console2.log("consideration recipient:", infra.advancedOrders[0].parameters.consideration[0].recipient);
     console2.log("consideration token: ", infra.advancedOrders[0].parameters.consideration[0].token);
     console2.log("consideration amount: ", infra.advancedOrders[0].parameters.consideration[0].startAmount);
@@ -414,12 +421,9 @@ contract ODNFVZoneTest is SetUp {
     // Iterate once for each orderPairCount, which is
     // used as the number of order pairs to make here.
     (,,address conduitController) = context.seaport.information();
+
     for (i = 0; i < context.matchArgs.orderPairCount; i++) {
       // Mint the NFTs for the prime offerer to sell.
-      vm.startPrank(fuzzPrimeProxy);
-      safeManager.openSAFE('ARB', fuzzPrimeProxy);
-      vm.stopPrank();
-
 
     
       // Build the OfferItem array for the prime offerer's order.
@@ -505,16 +509,16 @@ contract ODNFVZoneTest is SetUp {
   ) internal view returns (OfferItem[] memory _offerItemArray) {
     // Set up the OfferItem array.
     OfferItem[] memory offerItemArray = new OfferItem[](context.matchArgs.shouldIncludeExcessOfferItems ? 2 : 1);
-
+ 
     // If the fuzz args call for an excess offer item...
     if (context.matchArgs.shouldIncludeExcessOfferItems) {
       // Create the OfferItem array containing the offered item and the
       // excess item.
       offerItemArray = SeaportArrays.OfferItems(
         OfferItemLib.fromDefault(SINGLE_721).withToken(address(vault721)).withIdentifierOrCriteria(
-          context.matchArgs.tokenId + i
+          context.matchArgs.tokenId
         ),
-        OfferItemLib.fromDefault(SINGLE_721).withToken(address(vault721)).withIdentifierOrCriteria(
+        OfferItemLib.fromDefault(SINGLE_721).withToken(address(test721_1)).withIdentifierOrCriteria(
           (context.matchArgs.tokenId + i) * 2
         )
       );
@@ -523,7 +527,7 @@ contract ODNFVZoneTest is SetUp {
       // item.
       offerItemArray = SeaportArrays.OfferItems(
         OfferItemLib.fromDefault(SINGLE_721).withToken(address(vault721)).withIdentifierOrCriteria(
-          context.matchArgs.tokenId + i
+          i
         )
       );
     }
@@ -634,7 +638,7 @@ contract ODNFVZoneTest is SetUp {
     // so because the second NFT on the offer side is meant to be excess.
     considerationItemArray = SeaportArrays.ConsiderationItems(
       ConsiderationItemLib.fromDefault(SINGLE_721).withToken(address(vault721)).withIdentifierOrCriteria(
-        context.matchArgs.tokenId + i
+        context.matchArgs.tokenId
       ).withRecipient(fuzzMirrorOfferer.addr)
     );
 
