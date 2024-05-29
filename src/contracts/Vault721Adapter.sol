@@ -48,22 +48,18 @@ contract Vault721Adapter is IERC7496 {
   }
 
   /**
-   * @dev get NFVState from Vault721
-   * @notice return values are not hashed to enable enforceable condition in zone
-   */
-  function _getTraitValue(uint256 _tokenId, bytes32 _traitKey) internal view returns (bytes32) {
-    IVault721.NFVState memory _nfvState = vault721.getNfvState(_tokenId);
-    if (_traitKey == COLLATERAL) return bytes32(_nfvState.collateral);
-    if (_traitKey == DEBT) return bytes32(_nfvState.debt);
-    else revert UnknownTraitKeys();
-  }
-
-  /**
    * @dev return onchain data uri of trait details
    */
   function getTraitMetadataURI() external view returns (string memory _uri) {
     string memory _json = _formatJsonMetaData();
     _uri = string.concat('data:application/json;base64,', Base64.encode(bytes(_json)));
+  }
+
+  /**
+   * @dev setTrait is disabled; NFVState is found in Vault721
+   */
+  function setTrait(uint256, bytes32, bytes32) external {
+    revert Disabled();
   }
 
   function _formatJsonMetaData() internal pure returns (string memory _json) {
@@ -84,9 +80,13 @@ contract Vault721Adapter is IERC7496 {
   }
 
   /**
-   * @dev setTrait is disabled; NFVState is found in Vault721
+   * @dev get NFVState from Vault721
+   * @notice return values are not hashed to enable enforceable condition in zone
    */
-  function setTrait(uint256, bytes32, bytes32) external {
-    revert Disabled();
+  function _getTraitValue(uint256 _tokenId, bytes32 _traitKey) internal view returns (bytes32) {
+    IVault721.NFVState memory _nfvState = vault721.getNfvState(_tokenId);
+    if (_traitKey == COLLATERAL) return bytes32(_nfvState.collateral);
+    if (_traitKey == DEBT) return bytes32(_nfvState.debt);
+    else revert UnknownTraitKeys();
   }
 }
