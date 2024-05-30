@@ -50,7 +50,6 @@ import {ODNFVZoneInterface} from '../../src/interfaces/ODNFVZoneInterface.sol';
 import {ODNFVZoneControllerInterface} from '../../src/interfaces/ODNFVZoneControllerInterface.sol';
 import {ODNFVZoneController} from '../../src/contracts/ODNFVZoneController.sol';
 
-import {SetUp} from './SetUp.sol';
 import 'forge-std/console2.sol';
 
 contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
@@ -1200,7 +1199,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     bytes32[] memory keys = new bytes32[](2);
     keys[0] = COLLATERAL;
     keys[1] = DEBT;
-    bytes memory dataToEncode = abi.encode(keys, traits);
+    bytes memory dataToEncode = abi.encode(5, keys, traits);
     _extraData = dataToEncode.encodeSubstandard1();
   }
 

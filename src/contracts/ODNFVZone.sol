@@ -20,7 +20,7 @@ import {
 import {ODNFVZoneEventsAndErrors} from '../interfaces/ODNFVZoneEventsAndErrors.sol';
 import {TraitComparison} from '../libraries/Structs.sol';
 import {ODNFVZoneInterface} from '../interfaces/ODNFVZoneInterface.sol';
-
+import 'forge-std/console2.sol';
 /**
  * @title  ODSeaportZone
  * @author MrDeadce11 & stephankmin
@@ -259,13 +259,15 @@ contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
     address token;
     uint256 id;
     uint8 comparisonEnum;
-    bytes32 traitKey;
-    bytes32 expectedTraitValue;
+    bytes32[] memory  traitKeys;
+    bytes32[] memory expectedTraitValues;
 
     // If substandard version is 0, token address and id are first item of the consideration
     if (substandardVersion == 0) {
+      console2.log("substandard 0");
+
       // Decode traitKey from extraData
-      traitKey = abi.decode(extraData[1:], (bytes32));
+      (bytes32 traitKey) = abi.decode(extraData[1:], (bytes32));
 
       // Get the token address from the first consideration item
       token = zoneParameters.consideration[0].token;
@@ -282,8 +284,12 @@ contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
       // Check the trait
       _checkTraits(traitComparisons);
     } else if (substandardVersion == 1) {
+      traitKeys = new bytes32[](2);
+      expectedTraitValues = new bytes32[](2);
+      console2.log("Substandard 1");
       // Decode comparisonEnum, expectedTraitValue, and traitKey from extraData
-      (comparisonEnum, traitKey, expectedTraitValue) = abi.decode(extraData[1:], (uint8, bytes32, bytes32));
+      (comparisonEnum, traitKeys, expectedTraitValues) = abi.decode(extraData[1:], (uint8, bytes32[], bytes32[]));
+      console2.logBytes32(traitKeys[0]);
       //TODO do we want to check multiple considerations?
       // Get the token address from the first offer item
       token = zoneParameters.offer[0].token;
@@ -292,15 +298,16 @@ contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
       id = zoneParameters.offer[0].identifier;
 
       // Declare the TraitComparison array
-      TraitComparison[] memory traitComparisons = new TraitComparison[](1);
-      traitComparisons[0] = TraitComparison({
+      TraitComparison[] memory traitComparisons = new TraitComparison[](2);
+      for(uint256 i; i < traitComparisons.length; i++){
+      traitComparisons[i] = TraitComparison({
         token: token,
         comparisonEnum: comparisonEnum,
-        traitValue: expectedTraitValue,
-        traitKey: traitKey,
+        traitValue: expectedTraitValues[i],
+        traitKey: traitKeys[i],
         id: id
       });
-
+      }
       _checkTraits(traitComparisons);
     } else {
       revert UnsupportedSubstandard(substandardVersion);
