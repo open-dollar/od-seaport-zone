@@ -18,6 +18,14 @@ import {ZoneInterface} from 'seaport-types/src/interfaces/ZoneInterface.sol';
  * @author cupOJoseph, BCLeFevre, ryanio, MrDeadCe11
  */
 interface IODNFVZone is ZoneInterface {
+  struct TraitComparison {
+    address token;
+    uint256 id;
+    uint8 comparisonEnum;
+    bytes32 traitValue;
+    bytes32 traitKey;
+  }
+
   /**
    * @notice Cancel an arbitrary number of orders that have agreed to use the
    *         contract as their zone.

@@ -91,14 +91,6 @@ contract Vault721Adapter is IERC7496 {
     );
   }
 
-
-  /**
-   * @dev setTrait is disabled; NFVState is found in Vault721
-   */
-  function setTrait(uint256, bytes32, bytes32) external {
-    revert Disabled();
-  }
-
   // ERC721 functions that need implementation
 
   // function approve(address to, uint256 tokenId) external;

@@ -18,7 +18,6 @@ import {
 } from 'seaport-types/src/lib/ConsiderationStructs.sol';
 
 import {ODNFVZoneEventsAndErrors} from '../interfaces/ODNFVZoneEventsAndErrors.sol';
-import {TraitComparison} from '../libraries/Structs.sol';
 import {IODNFVZone} from '../interfaces/IODNFVZone.sol';
 
 /**
