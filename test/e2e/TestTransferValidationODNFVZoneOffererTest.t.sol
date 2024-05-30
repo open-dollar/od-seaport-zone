@@ -375,29 +375,29 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     // Store the native token balances before the call for later reference.
     infra.callerBalanceBefore = address(this).balance;
     infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
-    console2.log("ADVANCED ORDERS LENGTH: ", infra.advancedOrders.length);
+    console2.log('ADVANCED ORDERS LENGTH: ', infra.advancedOrders.length);
 
-    for(uint256 i; i < infra.advancedOrders.length; i++){
-      console2.log("ADVANCED ORDERS ITERATION: ", i);
-      console2.log("CONSIDERATION NUMBER: ", infra.advancedOrders[i].parameters.consideration.length);
-      console2.log("OFFERER: ", infra.advancedOrders[i].parameters.offerer);
-      for(uint256 j; j< infra.advancedOrders[i].parameters.offer.length; j++){
-        console2.log("OFFERS ITEREATION: ", j);
-        console2.log("token: ", infra.advancedOrders[i].parameters.offer[j].token);
-        console2.log("itemType: ", uint8(infra.advancedOrders[i].parameters.offer[j].itemType));
-        console2.log("identifierOrCriteria: ", infra.advancedOrders[i].parameters.offer[j].identifierOrCriteria);
-        console2.log("startAmount: ", infra.advancedOrders[i].parameters.offer[j].startAmount);
-        console2.log("endAmount: ", infra.advancedOrders[i].parameters.offer[j].endAmount);
+    for (uint256 i; i < infra.advancedOrders.length; i++) {
+      console2.log('ADVANCED ORDERS ITERATION: ', i);
+      console2.log('CONSIDERATION NUMBER: ', infra.advancedOrders[i].parameters.consideration.length);
+      console2.log('OFFERER: ', infra.advancedOrders[i].parameters.offerer);
+      for (uint256 j; j < infra.advancedOrders[i].parameters.offer.length; j++) {
+        console2.log('OFFERS ITEREATION: ', j);
+        console2.log('token: ', infra.advancedOrders[i].parameters.offer[j].token);
+        console2.log('itemType: ', uint8(infra.advancedOrders[i].parameters.offer[j].itemType));
+        console2.log('identifierOrCriteria: ', infra.advancedOrders[i].parameters.offer[j].identifierOrCriteria);
+        console2.log('startAmount: ', infra.advancedOrders[i].parameters.offer[j].startAmount);
+        console2.log('endAmount: ', infra.advancedOrders[i].parameters.offer[j].endAmount);
       }
 
-      for(uint256 q; q < infra.advancedOrders[i].parameters.consideration.length; q++){
-        console2.log("CONSIDERATION ITERATION: ", q);
-        console2.log("token: ", infra.advancedOrders[i].parameters.consideration[q].token);
-        console2.log("itemType: ", uint8(infra.advancedOrders[i].parameters.consideration[q].itemType));
-        console2.log("identifierOrCriteria: ", infra.advancedOrders[i].parameters.consideration[q].identifierOrCriteria);
-        console2.log("startAmount: ", infra.advancedOrders[i].parameters.consideration[q].startAmount);
-        console2.log("endAmount: ", infra.advancedOrders[i].parameters.consideration[q].endAmount);
-        console2.log("recipient: ", infra.advancedOrders[i].parameters.consideration[q].recipient);
+      for (uint256 q; q < infra.advancedOrders[i].parameters.consideration.length; q++) {
+        console2.log('CONSIDERATION ITERATION: ', q);
+        console2.log('token: ', infra.advancedOrders[i].parameters.consideration[q].token);
+        console2.log('itemType: ', uint8(infra.advancedOrders[i].parameters.consideration[q].itemType));
+        console2.log('identifierOrCriteria: ', infra.advancedOrders[i].parameters.consideration[q].identifierOrCriteria);
+        console2.log('startAmount: ', infra.advancedOrders[i].parameters.consideration[q].startAmount);
+        console2.log('endAmount: ', infra.advancedOrders[i].parameters.consideration[q].endAmount);
+        console2.log('recipient: ', infra.advancedOrders[i].parameters.consideration[q].recipient);
       }
     }
 

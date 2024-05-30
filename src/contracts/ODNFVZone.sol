@@ -20,13 +20,14 @@ import {
 import {ODNFVZoneEventsAndErrors} from '../interfaces/ODNFVZoneEventsAndErrors.sol';
 import {TraitComparison} from '../libraries/Structs.sol';
 import {ODNFVZoneInterface} from '../interfaces/ODNFVZoneInterface.sol';
-import 'forge-std/console2.sol';
+
 /**
  * @title  ODSeaportZone
  * @author MrDeadce11 & stephankmin
  * @notice ODSeaportZone is an implementation of SIP-15. It verifies that the dynamic traits of an NFT
  *         have not changed between the time of order creation and the time of order fulfillment.
  */
+
 contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
   using SIP6Decoder for bytes;
 
@@ -259,13 +260,10 @@ contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
     address token;
     uint256 id;
     uint8 comparisonEnum;
-    bytes32[] memory  traitKeys;
+    bytes32[] memory traitKeys;
     bytes32[] memory expectedTraitValues;
-
     // If substandard version is 0, token address and id are first item of the consideration
     if (substandardVersion == 0) {
-      console2.log("substandard 0");
-
       // Decode traitKey from extraData
       (bytes32 traitKey) = abi.decode(extraData[1:], (bytes32));
 
@@ -286,11 +284,9 @@ contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
     } else if (substandardVersion == 1) {
       traitKeys = new bytes32[](2);
       expectedTraitValues = new bytes32[](2);
-      console2.log("Substandard 1");
       // Decode comparisonEnum, expectedTraitValue, and traitKey from extraData
       (comparisonEnum, traitKeys, expectedTraitValues) = abi.decode(extraData[1:], (uint8, bytes32[], bytes32[]));
-      console2.logBytes32(traitKeys[0]);
-      //TODO do we want to check multiple considerations?
+
       // Get the token address from the first offer item
       token = zoneParameters.offer[0].token;
 
@@ -299,14 +295,14 @@ contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
 
       // Declare the TraitComparison array
       TraitComparison[] memory traitComparisons = new TraitComparison[](2);
-      for(uint256 i; i < traitComparisons.length; i++){
-      traitComparisons[i] = TraitComparison({
-        token: token,
-        comparisonEnum: comparisonEnum,
-        traitValue: expectedTraitValues[i],
-        traitKey: traitKeys[i],
-        id: id
-      });
+      for (uint256 i; i < traitComparisons.length; i++) {
+        traitComparisons[i] = TraitComparison({
+          token: token,
+          comparisonEnum: comparisonEnum,
+          traitValue: expectedTraitValues[i],
+          traitKey: traitKeys[i],
+          id: id
+        });
       }
       _checkTraits(traitComparisons);
     } else {
