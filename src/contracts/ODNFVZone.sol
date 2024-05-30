@@ -27,7 +27,6 @@ import {IODNFVZone} from '../interfaces/IODNFVZone.sol';
  * @notice ODSeaportZone is an implementation of SIP-15. It verifies that the dynamic traits of an NFT
  *         have not changed between the time of order creation and the time of order fulfillment.
  */
-
 contract ODNFVZone is ERC165, IODNFVZone, ODNFVZoneEventsAndErrors {
   using SIP6Decoder for bytes;
 
@@ -381,6 +380,7 @@ contract ODNFVZone is ERC165, IODNFVZone, ODNFVZoneEventsAndErrors {
     return ('SIP15Zone', schemas);
   }
   // remove pausing and controller. validateOnSale
+
   function supportsInterface(bytes4 interfaceId) public view override(ERC165, ZoneInterface) returns (bool) {
     return interfaceId == type(ZoneInterface).interfaceId || super.supportsInterface(interfaceId);
   }
