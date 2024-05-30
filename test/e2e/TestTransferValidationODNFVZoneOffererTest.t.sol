@@ -46,8 +46,8 @@ import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';
 import {IODSafeManager} from '@opendollar/interfaces/proxies/IODSafeManager.sol';
 
 import {ODNFVZone} from '../../src/contracts/ODNFVZone.sol';
-import {ODNFVZoneInterface} from '../../src/interfaces/ODNFVZoneInterface.sol';
-import {ODNFVZoneControllerInterface} from '../../src/interfaces/ODNFVZoneControllerInterface.sol';
+import {IODNFVZone} from '../../src/interfaces/IODNFVZone.sol';
+import {IODNFVZoneController} from '../../src/interfaces/IODNFVZoneController.sol';
 import {ODNFVZoneController} from '../../src/contracts/ODNFVZoneController.sol';
 
 import 'forge-std/console2.sol';
@@ -227,7 +227,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
   bytes32 public constant COLLATERAL = keccak256('COLLATERAL');
   bytes32 public constant DEBT = keccak256('DEBT');
 
-  ODNFVZoneInterface public ODNFVzone;
+  IODNFVZone public ODNFVzone;
   ODNFVZoneController public zoneController;
 
   function test(function(Context memory) external fn, Context memory context) internal {

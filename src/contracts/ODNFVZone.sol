@@ -19,7 +19,7 @@ import {
 
 import {ODNFVZoneEventsAndErrors} from '../interfaces/ODNFVZoneEventsAndErrors.sol';
 import {TraitComparison} from '../libraries/Structs.sol';
-import {ODNFVZoneInterface} from '../interfaces/ODNFVZoneInterface.sol';
+import {IODNFVZone} from '../interfaces/IODNFVZone.sol';
 
 /**
  * @title  ODSeaportZone
@@ -28,7 +28,7 @@ import {ODNFVZoneInterface} from '../interfaces/ODNFVZoneInterface.sol';
  *         have not changed between the time of order creation and the time of order fulfillment.
  */
 
-contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
+contract ODNFVZone is ERC165, IODNFVZone, ODNFVZoneEventsAndErrors {
   using SIP6Decoder for bytes;
 
   bool public isPaused;
@@ -375,12 +375,12 @@ contract ODNFVZone is ERC165, ODNFVZoneInterface, ODNFVZoneEventsAndErrors {
    */
   function getSeaportMetadata() external pure returns (string memory name, Schema[] memory schemas) {
     schemas = new Schema[](1);
-    schemas[0].id = 3003; // todo figure out the correct sip proposal id for sip6 decoding/encoding
+    schemas[0].id = 15; // todo figure out the correct sip proposal id for sip6 decoding/encoding
     schemas[0].metadata = new bytes(0);
 
-    return ('ODNFVZone', schemas);
+    return ('SIP15Zone', schemas);
   }
-
+  // remove pausing and controller. validateOnSale
   function supportsInterface(bytes4 interfaceId) public view override(ERC165, ZoneInterface) returns (bool) {
     return interfaceId == type(ZoneInterface).interfaceId || super.supportsInterface(interfaceId);
   }
