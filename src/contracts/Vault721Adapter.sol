@@ -4,12 +4,13 @@ pragma solidity 0.8.24;
 import {Base64} from '@openzeppelin/utils/Base64.sol';
 import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';
 import {IERC7496} from 'shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol';
-
+import {IERC721} from '@openzeppelin/token/ERC721/IERC721.sol';
 /**
  * @title Adds support for ERC7496 to an existing ERC721
  * @author OpenFi Foundation
  * @notice IERC7496 events are never emitted since NFVState is tracked in Vault721
  */
+
 contract Vault721Adapter is IERC7496 {
   bytes32 public constant COLLATERAL = keccak256('COLLATERAL');
   bytes32 public constant DEBT = keccak256('DEBT');
@@ -89,4 +90,17 @@ contract Vault721Adapter is IERC7496 {
       JSON_CLOSE
     );
   }
+
+  // ERC721 functions that need implementation
+
+  // function approve(address to, uint256 tokenId) external;
+  // function balanceOf(address owner) external view returns (uint256 balance);
+  // function getApproved(uint256 tokenId) external view returns (address operator);
+  // function isApprovedForAll(address owner, address operator) external view returns (bool);
+  // function ownerOf(uint256 tokenId) external view returns (address owner);
+  // function safeTransferFrom(address from, address to, uint256 tokenId) external;
+  // function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) external;
+  // function setApprovalForAll(address operator, bool approved) external;
+  // function supportsInterface(bytes4 interfaceId) external view returns (bool);
+  // function transferFrom(address from, address to, uint256 tokenId) external;
 }

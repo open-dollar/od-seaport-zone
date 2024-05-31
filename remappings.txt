@@ -8,6 +8,9 @@
 @opendollar/test/=node_modules/@opendollar/contracts/test/
 
 seaport-types/=lib/seaport-types/
+seaport-core/=lib/seaport-core/
+seaport/=lib/seaport/
+seaport-sol/=lib/seaport-sol/
 shipyard-core/=lib/shipyard-core/
 
 @console2/=forge-std/console2.sol;

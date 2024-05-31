@@ -8,5 +8,8 @@ url = https://github.com/ProjectOpenSea/seaport-types
 path = lib/shipyard-core
 url = https://github.com/ProjectOpenSea/shipyard-core
 [submodule "lib/seaport"]
-path = lib/seaport
-url = https://github.com/ProjectOpensea/seaport
+	path = lib/seaport
+	url = https://github.com/ProjectOpenSea/seaport
+[submodule "lib/seaport-sol"]
+	path = lib/seaport-sol
+	url = https://github.com/ProjectOpenSea/seaport-sol
