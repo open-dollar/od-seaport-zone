@@ -45,10 +45,8 @@ import {Vault721Adapter} from '../../src/contracts/Vault721Adapter.sol';
 import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';
 import {IODSafeManager} from '@opendollar/interfaces/proxies/IODSafeManager.sol';
 
-import {ODNFVZone} from '../../src/contracts/ODNFVZone.sol';
-import {IODNFVZone} from '../../src/interfaces/IODNFVZone.sol';
-import {IODNFVZoneController} from '../../src/interfaces/IODNFVZoneController.sol';
-import {ODNFVZoneController} from '../../src/contracts/ODNFVZoneController.sol';
+import {SIP15Zone} from '../../src/contracts/SIP15Zone.sol';
+import {ISIP15Zone} from '../../src/interfaces/ISIP15Zone.sol';
 
 import 'forge-std/console2.sol';
 
@@ -67,7 +65,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
 
   MatchFulfillmentHelper matchFulfillmentHelper;
   FulfillAvailableHelper fulfillAvailableFulfillmentHelper;
-  ODNFVZone zone;
+  SIP15Zone zone;
   TestZone testZone;
   Vault721Adapter public vault721Adapter;
   IVault721 public vault721;
@@ -84,8 +82,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
   function setUp() public virtual override {
     super.setUp();
     vm.createSelectFork(vm.envString('ARB_MAINNET_RPC'));
-    zoneController = new ODNFVZoneController(address(this));
-    zone = ODNFVZone(zoneController.createZone(keccak256(abi.encode('salt'))));
+    zone = new SIP15Zone();
 
     vault721 = IVault721(vault721Address);
     vault721Adapter = new Vault721Adapter(vault721);
@@ -226,9 +223,6 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
 
   bytes32 public constant COLLATERAL = keccak256('COLLATERAL');
   bytes32 public constant DEBT = keccak256('DEBT');
-
-  IODNFVZone public ODNFVzone;
-  ODNFVZoneController public zoneController;
 
   function test(function(Context memory) external fn, Context memory context) internal {
     try fn(context) {
@@ -840,7 +834,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     address fuzzyZone;
 
     if (context.fulfillArgs.shouldUseTransferValidationZone) {
-      zone = ODNFVZone(zoneController.createZone(keccak256(abi.encode('salt'))));
+      zone = new SIP15Zone();
       // (
       //     context.fulfillArgs.shouldSpecifyRecipient
       //         ? context.fulfillArgs.offerRecipient
