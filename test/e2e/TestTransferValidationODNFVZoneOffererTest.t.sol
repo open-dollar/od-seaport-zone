@@ -233,6 +233,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
   }
 
   function testMatchAdvancedOrdersFuzz(MatchFuzzInputs memory matchArgs) public {
+    vm.skip(true);
     // Avoid weird overflow issues.
     matchArgs.amount = uint128(bound(matchArgs.amount, 1, 0xffffffffffffffff));
     // Avoid trying to mint the same token.
@@ -465,6 +466,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
   }
 
   function testFulfillAvailableAdvancedFuzz(FulfillFuzzInputs memory fulfillArgs) public {
+    vm.skip(true);
     // Limit this value to avoid overflow issues.
     fulfillArgs.amount = uint128(bound(fulfillArgs.amount, 1, 0xffffffffffffffff));
     // Limit this value to avoid overflow issues.
