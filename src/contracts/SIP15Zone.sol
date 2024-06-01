@@ -6,16 +6,6 @@ import {ZoneParameters, Schema} from 'seaport-types/src/lib/ConsiderationStructs
 import {IERC7496} from 'shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol';
 import {SIP6Decoder} from 'shipyard-core/src/sips/lib/SIP6Decoder.sol';
 import {ZoneInterface} from 'seaport-types/src/interfaces/ZoneInterface.sol';
-import {SeaportInterface} from 'seaport-types/src/interfaces/SeaportInterface.sol';
-
-import {
-  AdvancedOrder,
-  CriteriaResolver,
-  Execution,
-  Fulfillment,
-  Order,
-  OrderComponents
-} from 'seaport-types/src/lib/ConsiderationStructs.sol';
 
 import {SIP15ZoneEventsAndErrors} from '../interfaces/SIP15ZoneEventsAndErrors.sol';
 import {ISIP15Zone} from '../interfaces/ISIP15Zone.sol';
