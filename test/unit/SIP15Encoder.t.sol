@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import {Test, console} from 'forge-std/Test.sol';
-import {SIP15Encoder} from '../../src/sips/lib/SIP15Encoder.sol';
+import {SIP15Encoder} from '../../src/sips/SIP15Encoder.sol';
 import {ZoneParameters, Schema} from 'seaport-types/src/lib/ConsiderationStructs.sol';
 import {
   ConsiderationItemLib,
