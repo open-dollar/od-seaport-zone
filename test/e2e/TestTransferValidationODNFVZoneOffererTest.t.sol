@@ -317,7 +317,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     // Convert the orders to advanced orders.
     for (uint256 i = 0; i < infra.orders.length; i++) {
       infra.advancedOrders[i] = infra.orders[i].toAdvancedOrder(
-        1, 1, SIP15Encoder.encodeSubstandard5(this._getExtraData(context.matchArgs.tokenId))
+        1, 1, SIP15Encoder.encodeSubstandard5(_getExtraData(context.matchArgs.tokenId))
       );
     }
     vm.warp(block.timestamp + vault721.timeDelay());
@@ -1062,7 +1062,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
       // ... set the zone to the transfer validation zone and
       // set the order type to FULL_RESTRICTED.
       orderComponents = orderComponents.copy().withZone(address(zone)).withOrderType(OrderType.FULL_RESTRICTED)
-        .withZoneHash(_getZoneHash(this._getExtraData(context.matchArgs.tokenId)));
+        .withZoneHash(_getZoneHash(_getExtraData(context.matchArgs.tokenId)));
     }
 
     return orderComponents;
@@ -1184,7 +1184,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     traits = vault721Adapter.getTraitValues(tokenId, traitKeys);
   }
 
-  function _getExtraData(uint256 tokenId) public returns (Substandard5Comparison calldata _substandard5Comparison) {
+  function _getExtraData(uint256 tokenId) public returns (Substandard5Comparison memory) {
     bytes32[] memory traits = _getTraits(tokenId);
     bytes32[] memory keys = new bytes32[](2);
     uint8[] memory _comparisonEnums = new uint8[](2);
@@ -1192,7 +1192,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     _comparisonEnums[1] = 5;
     keys[0] = COLLATERAL;
     keys[1] = DEBT;
-    Substandard5Comparison storage subStandard5Comparison = Substandard5Comparison({
+    Substandard5Comparison memory subStandard5Comparison = Substandard5Comparison({
       comparisonEnums: _comparisonEnums,
       token: address(vault721),
       identifier: tokenId,
@@ -1201,17 +1201,10 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
       traitKeys: keys
     });
 
-    _substandard5Comparison = this.returnCalldata(subStandard5Comparison);
+    return subStandard5Comparison;
   }
 
-  function returnCalldata(Substandard5Comparison calldata substandard5Comparison)
-    external
-    returns (Substandard5Comparison calldata _substandard5Comparison)
-  {
-    return _substandard5Comparison = substandard5Comparison;
-  }
-
-  function _getZoneHash(Substandard5Comparison calldata _substandard5Comparison) public returns (bytes32 _zoneHash) {
+  function _getZoneHash(Substandard5Comparison memory _substandard5Comparison) public returns (bytes32 _zoneHash) {
     _zoneHash = SIP15Encoder.generateZoneHashForSubstandard5(_substandard5Comparison);
   }
 

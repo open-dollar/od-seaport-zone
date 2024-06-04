@@ -22,7 +22,7 @@ library SIP15Encoder {
    * @param traitKey the bytes32 encoded trait key for checking a trait on an ERC7496 token
    */
   function generateZoneHashForSubstandard1Efficient(
-    ZoneParameters calldata zoneParameters,
+    ZoneParameters memory zoneParameters,
     bytes32 traitKey
   ) internal pure returns (bytes32) {
     // Get the token address from the first consideration item
@@ -42,7 +42,7 @@ library SIP15Encoder {
    */
 
   function generateZoneHashForSubstandard1(
-    ZoneParameters calldata zoneParameters,
+    ZoneParameters memory zoneParameters,
     uint8 comparisonEnum,
     bytes32 traitValue,
     bytes32 traitKey
@@ -63,7 +63,7 @@ library SIP15Encoder {
    * @param traitKey the bytes32 encoded trait key for checking a trait on an ERC7496 token
    */
   function generateZoneHashForSubstandard2(
-    ZoneParameters calldata zoneParameters,
+    ZoneParameters memory zoneParameters,
     uint8 comparisonEnum,
     bytes32 traitValue,
     bytes32 traitKey
@@ -75,7 +75,7 @@ library SIP15Encoder {
     return keccak256(abi.encodePacked(comparisonEnum, token, identifier, traitValue, traitKey));
   }
 
-  function generateZoneHashForSubstandard5(Substandard5Comparison calldata _substandard5Comparison)
+  function generateZoneHashForSubstandard5(Substandard5Comparison memory _substandard5Comparison)
     internal
     pure
     returns (bytes32)
@@ -117,7 +117,7 @@ library SIP15Encoder {
    * @param traitKey the bytes32 encoded trait key for checking a trait on an ERC7496 token
    */
   function encodeSubstandard1Efficient(
-    ZoneParameters calldata zoneParameters,
+    ZoneParameters memory zoneParameters,
     bytes32 traitKey
   ) internal pure returns (bytes memory) {
     // Get the token address from the first consideration item
@@ -136,7 +136,7 @@ library SIP15Encoder {
    * @param traitValue the expected value of the trait.
    */
   function encodeSubstandard1(
-    ZoneParameters calldata zoneParameters,
+    ZoneParameters memory zoneParameters,
     uint8 comparisonEnum,
     bytes32 traitValue,
     bytes32 traitKey
@@ -152,13 +152,13 @@ library SIP15Encoder {
   /**
    * @notice Encode extraData for SIP15-substandard-2, which specifies
    *    the token and identifier from the first consideration item as well as a comparison enum, trait key and trait value
-   * @param zoneParameters calldata zoneParameters,
+   * @param zoneParameters memory zoneParameters,
    * @param comparisonEnum The comparison enum 0 - 5
    * @param traitValue The expecta value of the trait
    * @param traitKey the bytes32 encoded trait key for checking a trait on an ERC7496 token
    */
   function encodeSubstandard2(
-    ZoneParameters calldata zoneParameters,
+    ZoneParameters memory zoneParameters,
     uint8 comparisonEnum,
     bytes32 traitValue,
     bytes32 traitKey
@@ -203,9 +203,9 @@ library SIP15Encoder {
   function encodeSubstandard4(
     uint8 comparisonEnum,
     address token,
-    uint256[] calldata identifiers,
-    bytes32[] calldata traitValues,
-    bytes32[] calldata traitKeys
+    uint256[] memory identifiers,
+    bytes32[] memory traitValues,
+    bytes32[] memory traitKeys
   ) internal pure returns (bytes memory) {
     return abi.encodePacked(uint8(0x04), abi.encode(comparisonEnum, token, identifiers, traitValues, traitKeys));
   }
@@ -214,7 +214,7 @@ library SIP15Encoder {
    * @notice Encode extraData for SIP15-substandard-5, which specifies a single tokenIdentifier
    * @param comparisonStruct the struct of comparison data
    */
-  function encodeSubstandard5(Substandard5Comparison calldata comparisonStruct) internal pure returns (bytes memory) {
+  function encodeSubstandard5(Substandard5Comparison memory comparisonStruct) internal pure returns (bytes memory) {
     return abi.encodePacked(uint8(0x05), abi.encode(comparisonStruct));
   }
 }
