@@ -76,8 +76,6 @@ contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
     uint8 comparisonEnum;
     bytes32 traitKey;
     bytes32 traitValue;
-    bytes32[] memory traitKeys;
-    bytes32[] memory expectedTraitValues;
     // If substandard version is 0, token address and id are first item of the consideration
     if (substandardVersion == 0) {
       // Decode traitKey from extraData
