@@ -20,10 +20,7 @@ import {ISIP15Zone} from '../interfaces/ISIP15Zone.sol';
 contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
   using SIP15Decoder for bytes;
 
-  bool public isPaused;
-  address private _controller;
   // Set an operator that can instruct the zone to cancel or execute orders.
-  address public operator;
 
   constructor() {}
 
@@ -53,7 +50,7 @@ contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
     // Decode substandard version from extraData using SIP-6 decoder
     uint8 substandardVersion = uint8(extraData.decodeSubstandardVersion());
 
-    _validateSubstandard(zoneParameters, substandardVersion, extraData);
+    _validateSubstandard(substandardVersion, extraData);
 
     return this.validateOrder.selector;
   }
@@ -67,7 +64,6 @@ contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
   }
 
   function _validateSubstandard(
-    ZoneParameters calldata zoneParameters,
     uint8 substandardVersion,
     bytes calldata extraData
   ) internal view {

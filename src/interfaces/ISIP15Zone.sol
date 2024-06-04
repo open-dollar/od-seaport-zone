@@ -15,7 +15,6 @@ import {ZoneInterface} from 'seaport-types/src/interfaces/ZoneInterface.sol';
 
 /**
  * @title  ISIP15Zone
- * @author cupOJoseph, BCLeFevre, ryanio, MrDeadCe11
  */
 interface ISIP15Zone is ZoneInterface {
   struct TraitComparison {
