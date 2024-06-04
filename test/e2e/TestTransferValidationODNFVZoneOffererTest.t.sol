@@ -361,8 +361,6 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     // Store the native token balances before the call for later reference.
     infra.callerBalanceBefore = address(this).balance;
     infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
-    }
-
     // Make the call to Seaport.
     context.seaport.matchAdvancedOrders{
       value: (context.matchArgs.amount * context.matchArgs.orderPairCount) + context.matchArgs.excessNativeTokens

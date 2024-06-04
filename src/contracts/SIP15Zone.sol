@@ -109,7 +109,7 @@ contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
 
       for (uint256 i; i < len; i++) {
         traitComparisons[i] = TraitComparison({
-          token: substandard5Comparison.traits,
+          token: substandard5Comparison.traits == address(0) ? substandard5Comparison.token : substandard5Comparison.traits,
           comparisonEnum: substandard5Comparison.comparisonEnums[i],
           traitValue: substandard5Comparison.traitValues[i],
           traitKey: substandard5Comparison.traitKeys[i],
