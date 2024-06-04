@@ -63,7 +63,7 @@ jobs:
           run: forge build
           
         - name: Build Seaport
-          run: cd lib/seaport && FOUNDRY_PROFILE=optimized forge build
+          run: cd lib/seaport/ && FOUNDRY_PROFILE=optimized forge build
 
         - name: "Create env file"
           run: |
