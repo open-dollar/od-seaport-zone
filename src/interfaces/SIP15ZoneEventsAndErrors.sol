@@ -20,7 +20,7 @@ interface SIP15ZoneEventsAndErrors is ISIP15Zone {
     bytes32 expectedTraitValue,
     bytes32 actualTraitValue
   );
-  
+
   error InvalidComparisonEnum(uint256 comparisonEnum);
 
   /////////////////////// Pausable ///////////////////

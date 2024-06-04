@@ -96,24 +96,25 @@ contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
       // Check the trait
       _checkTraits(traitComparisons);
     } else if (substandardVersion == 5) {
-
-  // struct Substandard5Comparison {
-  //   uint8[] comparisonEnums;
-  //   address token;
-  //   address traits;
-  //   uint256 identifier;
-  //   bytes32[] traitValues;
-  //   bytes32[] traitKeys;
-  // }
+      // struct Substandard5Comparison {
+      //   uint8[] comparisonEnums;
+      //   address token;
+      //   address traits;
+      //   uint256 identifier;
+      //   bytes32[] traitValues;
+      //   bytes32[] traitKeys;
+      // }
 
       // Decode comparisonEnum, expectedTraitValue, and traitKey from extraData
       (Substandard5Comparison memory substandard5Comparison) = extraData.decodeSubstandard5();
       uint256 len = substandard5Comparison.comparisonEnums.length;
-      if(len != substandard5Comparison.traitValues.length || len != substandard5Comparison.traitKeys.length) revert InvalidArrayLength();
-      
+      if (len != substandard5Comparison.traitValues.length || len != substandard5Comparison.traitKeys.length) {
+        revert InvalidArrayLength();
+      }
+
       // Declare the TraitComparison array
-      TraitComparison[] memory traitComparisons = new TraitComparison[](len);      
-      
+      TraitComparison[] memory traitComparisons = new TraitComparison[](len);
+
       for (uint256 i; i < len; i++) {
         traitComparisons[i] = TraitComparison({
           token: substandard5Comparison.traits,

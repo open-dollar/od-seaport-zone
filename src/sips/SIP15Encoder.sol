@@ -5,14 +5,14 @@ import {ReceivedItem} from 'seaport-types/src/lib/ConsiderationStructs.sol';
 import {ItemType} from 'seaport-types/src/lib/ConsiderationEnums.sol';
 import {ZoneParameters, Schema} from 'seaport-types/src/lib/ConsiderationStructs.sol';
 
-  struct Substandard5Comparison {
-    uint8[] comparisonEnums;
-    address token;
-    address traits;
-    uint256 identifier;
-    bytes32[] traitValues;
-    bytes32[] traitKeys;
-  }
+struct Substandard5Comparison {
+  uint8[] comparisonEnums;
+  address token;
+  address traits;
+  uint256 identifier;
+  bytes32[] traitValues;
+  bytes32[] traitKeys;
+}
 
 library SIP15Encoder {
   /**
@@ -21,7 +21,10 @@ library SIP15Encoder {
    * @param zoneParameters the zone parameters for the order being encoded
    * @param traitKey the bytes32 encoded trait key for checking a trait on an ERC7496 token
    */
-  function generateZoneHashForSubstandard1Efficient(ZoneParameters calldata zoneParameters, bytes32 traitKey) internal pure returns (bytes32) {
+  function generateZoneHashForSubstandard1Efficient(
+    ZoneParameters calldata zoneParameters,
+    bytes32 traitKey
+  ) internal pure returns (bytes32) {
     // Get the token address from the first consideration item
     address token = zoneParameters.consideration[0].token;
     // Get the id from the first consideration item
@@ -72,10 +75,21 @@ library SIP15Encoder {
     return keccak256(abi.encodePacked(comparisonEnum, token, identifier, traitValue, traitKey));
   }
 
-  function generateZoneHashForSubstandard5(
-    Substandard5Comparison calldata _substandard5Comparison
-  )internal pure returns(bytes32){
-    return keccak256(abi.encodePacked(_substandard5Comparison.comparisonEnums, _substandard5Comparison.token, _substandard5Comparison.traits, _substandard5Comparison.identifier, _substandard5Comparison.traitValues, _substandard5Comparison.traitKeys));
+  function generateZoneHashForSubstandard5(Substandard5Comparison calldata _substandard5Comparison)
+    internal
+    pure
+    returns (bytes32)
+  {
+    return keccak256(
+      abi.encodePacked(
+        _substandard5Comparison.comparisonEnums,
+        _substandard5Comparison.token,
+        _substandard5Comparison.traits,
+        _substandard5Comparison.identifier,
+        _substandard5Comparison.traitValues,
+        _substandard5Comparison.traitKeys
+      )
+    );
   }
 
   /**
@@ -158,7 +172,7 @@ library SIP15Encoder {
   }
 
   /**
-   * @notice Encode extraData for SIP15-substandard-3, 
+   * @notice Encode extraData for SIP15-substandard-3,
    * which specifies a single comparison enum, token, identifier, traitValue and traitKey
    * @param comparisonEnum the comparison enum 0 - 5
    * @param token the address of the collection
@@ -192,17 +206,15 @@ library SIP15Encoder {
     uint256[] calldata identifiers,
     bytes32[] calldata traitValues,
     bytes32[] calldata traitKeys
-    ) internal pure returns (bytes memory) {
-    return abi.encodePacked(uint8(0x04), abi.encode(comparisonEnum, token, identifiers,traitValues, traitKeys));
+  ) internal pure returns (bytes memory) {
+    return abi.encodePacked(uint8(0x04), abi.encode(comparisonEnum, token, identifiers, traitValues, traitKeys));
   }
 
   /**
    * @notice Encode extraData for SIP15-substandard-5, which specifies a single tokenIdentifier
    * @param comparisonStruct the struct of comparison data
    */
-  function encodeSubstandard5(
-    Substandard5Comparison calldata comparisonStruct
-  ) internal pure returns (bytes memory){
+  function encodeSubstandard5(Substandard5Comparison calldata comparisonStruct) internal pure returns (bytes memory) {
     return abi.encodePacked(uint8(0x05), abi.encode(comparisonStruct));
   }
 }

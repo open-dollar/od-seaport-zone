@@ -317,9 +317,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     // Convert the orders to advanced orders.
     for (uint256 i = 0; i < infra.orders.length; i++) {
       infra.advancedOrders[i] = infra.orders[i].toAdvancedOrder(
-        1,
-        1,
-      SIP15Encoder.encodeSubstandard5(this._getExtraData(context.matchArgs.tokenId))
+        1, 1, SIP15Encoder.encodeSubstandard5(this._getExtraData(context.matchArgs.tokenId))
       );
     }
     vm.warp(block.timestamp + vault721.timeDelay());
@@ -1202,16 +1200,18 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
       traitValues: traits,
       traitKeys: keys
     });
-    
+
     _substandard5Comparison = this.returnCalldata(subStandard5Comparison);
   }
 
-  function returnCalldata(Substandard5Comparison calldata substandard5Comparison) external returns(Substandard5Comparison calldata _substandard5Comparison){
-      return _substandard5Comparison = substandard5Comparison;
+  function returnCalldata(Substandard5Comparison calldata substandard5Comparison)
+    external
+    returns (Substandard5Comparison calldata _substandard5Comparison)
+  {
+    return _substandard5Comparison = substandard5Comparison;
   }
 
-  function _getZoneHash(Substandard5Comparison calldata _substandard5Comparison)public returns(bytes32 _zoneHash){
-
+  function _getZoneHash(Substandard5Comparison calldata _substandard5Comparison) public returns (bytes32 _zoneHash) {
     _zoneHash = SIP15Encoder.generateZoneHashForSubstandard5(_substandard5Comparison);
   }
 

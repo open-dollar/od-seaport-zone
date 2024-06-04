@@ -13,30 +13,54 @@ library SIP15Decoder {
     return BaseSIPDecoder.decodeSubstandardVersion(extraData);
   }
 
-  function decodeSubstandard1(bytes calldata extraData)internal pure returns (uint8, address, uint256, bytes32, bytes32){
+  function decodeSubstandard1(bytes calldata extraData)
+    internal
+    pure
+    returns (uint8, address, uint256, bytes32, bytes32)
+  {
     return _decodeSingleTraitsWithOffset(extraData, 1);
   }
 
-  function decodeSubstandard1Efficient(bytes calldata extraData)internal pure returns(uint8, address, uint256, bytes32, bytes32){
+  function decodeSubstandard1Efficient(bytes calldata extraData)
+    internal
+    pure
+    returns (uint8, address, uint256, bytes32, bytes32)
+  {
     return _decodeSingleTraitsWithOffset(extraData, 0);
   }
-  
-  function decodeSubstandard2(bytes calldata extraData) internal pure returns(uint8, address, uint256, bytes32, bytes32){
-    return _decodeSingleTraitsWithOffset(extraData, 1);
-  }
-    function decodeSubstandard3(bytes calldata extraData) internal pure returns(uint8, address, uint256, bytes32, bytes32){
+
+  function decodeSubstandard2(bytes calldata extraData)
+    internal
+    pure
+    returns (uint8, address, uint256, bytes32, bytes32)
+  {
     return _decodeSingleTraitsWithOffset(extraData, 1);
   }
 
-  function decodeSubstandard4(bytes calldata extraData) internal pure returns(uint8, address, uint256[] memory, bytes32[] memory, bytes32[] memory){
+  function decodeSubstandard3(bytes calldata extraData)
+    internal
+    pure
+    returns (uint8, address, uint256, bytes32, bytes32)
+  {
+    return _decodeSingleTraitsWithOffset(extraData, 1);
+  }
+
+  function decodeSubstandard4(bytes calldata extraData)
+    internal
+    pure
+    returns (uint8, address, uint256[] memory, bytes32[] memory, bytes32[] memory)
+  {
     return abi.decode(extraData[1:], (uint8, address, uint256[], bytes32[], bytes32[]));
   }
 
-  function decodeSubstandard5(bytes calldata extraData)internal pure returns(Substandard5Comparison memory){
+  function decodeSubstandard5(bytes calldata extraData) internal pure returns (Substandard5Comparison memory) {
     return abi.decode(extraData[1:], (Substandard5Comparison));
   }
 
-  function _decodeSingleTraitsWithOffset(bytes calldata extraData, uint256 sip15DataStartRelativeOffset)internal pure returns(uint8, address, uint256, bytes32, bytes32){
+  function _decodeSingleTraitsWithOffset(
+    bytes calldata extraData,
+    uint256 sip15DataStartRelativeOffset
+  ) internal pure returns (uint8, address, uint256, bytes32, bytes32) {
     return abi.decode(extraData[sip15DataStartRelativeOffset:], (uint8, address, uint256, bytes32, bytes32));
   }
 }
