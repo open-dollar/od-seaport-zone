@@ -8,8 +8,10 @@ interface SIP15ZoneEventsAndErrors is ISIP15Zone {
   event TraitsVerified(TraitComparison traitComparison);
 
   error InvalidZoneHash(bytes32 zoneHash, bytes32 keccak256ExtraData);
+  error InvalidArrayLength();
   // error InvalidExtraData(bytes extraData);
   error UnsupportedSubstandard(uint256 substandardVersion);
+
   error InvalidDynamicTraitValue(
     address token,
     uint256 id,
@@ -18,6 +20,7 @@ interface SIP15ZoneEventsAndErrors is ISIP15Zone {
     bytes32 expectedTraitValue,
     bytes32 actualTraitValue
   );
+  
   error InvalidComparisonEnum(uint256 comparisonEnum);
 
   /////////////////////// Pausable ///////////////////

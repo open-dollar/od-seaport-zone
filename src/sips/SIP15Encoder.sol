@@ -72,6 +72,12 @@ library SIP15Encoder {
     return keccak256(abi.encodePacked(comparisonEnum, token, identifier, traitValue, traitKey));
   }
 
+  function generateZoneHashForSubstandard5(
+    Substandard5Comparison calldata _substandard5Comparison
+  )internal pure returns(bytes32){
+    return keccak256(abi.encodePacked(_substandard5Comparison.comparisonEnums, _substandard5Comparison.token, _substandard5Comparison.traits, _substandard5Comparison.identifier, _substandard5Comparison.traitValues, _substandard5Comparison.traitKeys));
+  }
+
   /**
    * @notice Generate a zone hash for an SIP15 contract that implements substandard 3, which
    *         derives its zoneHash from a single comparison enum, token address, token id, trait value and trait key

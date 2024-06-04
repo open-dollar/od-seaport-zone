@@ -37,7 +37,6 @@ import {FulfillAvailableHelper} from 'seaport-sol/src/fulfillments/available/Ful
 
 import {MatchFulfillmentHelper} from 'seaport-sol/src/fulfillments/match/MatchFulfillmentHelper.sol';
 
-import {SIP6Encoder} from 'shipyard-core/src/sips/lib/SIP6Encoder.sol';
 import {TestZone} from 'seaport/test/foundry/zone/impl/TestZone.sol';
 
 import {IVault721Adapter} from '../../src/interfaces/IVault721Adapter.sol';
@@ -46,7 +45,7 @@ import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';
 import {IODSafeManager} from '@opendollar/interfaces/proxies/IODSafeManager.sol';
 
 import {SIP15Zone} from '../../src/contracts/SIP15Zone.sol';
-import {ISIP15Zone} from '../../src/interfaces/ISIP15Zone.sol';
+import {SIP15Encoder, Substandard5Comparison} from '../../src/sips/SIP15Encoder.sol';
 
 import 'forge-std/console2.sol';
 
@@ -61,7 +60,6 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
   using OrderComponentsLib for OrderComponents;
   using OrderLib for Order;
   using OrderLib for Order[];
-  using SIP6Encoder for bytes;
 
   MatchFulfillmentHelper matchFulfillmentHelper;
   FulfillAvailableHelper fulfillAvailableFulfillmentHelper;
@@ -261,7 +259,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
       address(uint160(bound(uint160(matchArgs.unspentPrimeOfferItemRecipient), 1, type(uint160).max)))
     );
 
-    matchArgs.zoneHash = _getExtraData(matchArgs.tokenId).generateZoneHash();
+    matchArgs.zoneHash = _getZoneHash(_getExtraData(matchArgs.tokenId));
 
     // TODO: REMOVE: I probably need to create an array of addresses with
     // dirty balances and an array of addresses that are contracts that
@@ -321,9 +319,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
       infra.advancedOrders[i] = infra.orders[i].toAdvancedOrder(
         1,
         1,
-        context.matchArgs.shouldIncludeJunkDataInAdvancedOrder
-          ? _getExtraData(context.matchArgs.tokenId)
-          : _getExtraData(context.matchArgs.tokenId)
+      SIP15Encoder.encodeSubstandard5(this._getExtraData(context.matchArgs.tokenId))
       );
     }
     vm.warp(block.timestamp + vault721.timeDelay());
@@ -489,7 +485,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     // some tokens refuse to transfer to the null address.
     fulfillArgs.offerRecipient =
       _nudgeAddressIfProblematic(address(uint160(bound(uint160(fulfillArgs.offerRecipient), 1, type(uint160).max))));
-    fulfillArgs.zoneHash = _getExtraData(fulfillArgs.tokenId).generateZoneHash();
+    fulfillArgs.zoneHash = _getZoneHash(_getExtraData(fulfillArgs.tokenId));
     // Don't set the consideration recipient to the null address, because
     // some tokens refuse to transfer to the null address.
     fulfillArgs.considerationRecipient = _nudgeAddressIfProblematic(
@@ -1068,7 +1064,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
       // ... set the zone to the transfer validation zone and
       // set the order type to FULL_RESTRICTED.
       orderComponents = orderComponents.copy().withZone(address(zone)).withOrderType(OrderType.FULL_RESTRICTED)
-        .withZoneHash(_getExtraData(context.matchArgs.tokenId).generateZoneHash());
+        .withZoneHash(_getZoneHash(this._getExtraData(context.matchArgs.tokenId)));
     }
 
     return orderComponents;
@@ -1190,13 +1186,33 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     traits = vault721Adapter.getTraitValues(tokenId, traitKeys);
   }
 
-  function _getExtraData(uint256 tokenId) internal returns (bytes memory _extraData) {
+  function _getExtraData(uint256 tokenId) public returns (Substandard5Comparison calldata _substandard5Comparison) {
     bytes32[] memory traits = _getTraits(tokenId);
     bytes32[] memory keys = new bytes32[](2);
+    uint8[] memory _comparisonEnums = new uint8[](2);
+    _comparisonEnums[0] = 5;
+    _comparisonEnums[1] = 5;
     keys[0] = COLLATERAL;
     keys[1] = DEBT;
-    bytes memory dataToEncode = abi.encode(5, keys, traits);
-    _extraData = dataToEncode.encodeSubstandard1();
+    Substandard5Comparison storage subStandard5Comparison = Substandard5Comparison({
+      comparisonEnums: _comparisonEnums,
+      token: address(vault721),
+      identifier: tokenId,
+      traits: address(vault721Adapter),
+      traitValues: traits,
+      traitKeys: keys
+    });
+    
+    _substandard5Comparison = this.returnCalldata(subStandard5Comparison);
+  }
+
+  function returnCalldata(Substandard5Comparison calldata substandard5Comparison) external returns(Substandard5Comparison calldata _substandard5Comparison){
+      return _substandard5Comparison = substandard5Comparison;
+  }
+
+  function _getZoneHash(Substandard5Comparison calldata _substandard5Comparison)public returns(bytes32 _zoneHash){
+
+    _zoneHash = SIP15Encoder.generateZoneHashForSubstandard5(_substandard5Comparison);
   }
 
   function deployOrFind(address owner) public returns (address payable) {

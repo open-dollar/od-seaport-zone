@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import {BaseSIPDecoder} from 'shipyard-core/src/sips/lib/BaseSIPDecoder.sol';
 import {Substandard5Comparison} from './SIP15Encoder.sol';
 
-library SIP6Decoder {
+library SIP15Decoder {
   /**
    * @notice Read the SIP15 substandard version byte from the extraData field of a SIP15 encoded bytes array.
    * @param extraData bytes calldata
