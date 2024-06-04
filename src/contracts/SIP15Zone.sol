@@ -74,32 +74,105 @@ contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
     address token;
     uint256 id;
     uint8 comparisonEnum;
+    bytes32 traitKey;
+    bytes32 traitValue;
     bytes32[] memory traitKeys;
     bytes32[] memory expectedTraitValues;
     // If substandard version is 0, token address and id are first item of the consideration
     if (substandardVersion == 0) {
       // Decode traitKey from extraData
-      (bytes32 traitKey) = abi.decode(extraData[1:], (bytes32));
-
-      // Get the token address from the first consideration item
-      token = zoneParameters.consideration[0].token;
-
-      // Get the id from the first consideration item
-      id = zoneParameters.consideration[0].identifier;
+      (comparisonEnum, token, id, traitValue, traitKey) = extraData.decodeSubstandard1Efficient();
 
       // Declare the TraitComparison array
       TraitComparison[] memory traitComparisons = new TraitComparison[](1);
 
-      traitComparisons[0] =
-        TraitComparison({token: token, id: id, comparisonEnum: 0, traitValue: bytes32(0), traitKey: traitKey});
+      traitComparisons[0] = TraitComparison({
+        token: token,
+        id: id,
+        comparisonEnum: comparisonEnum,
+        traitValue: traitValue,
+        traitKey: traitKey
+      });
 
       // Check the trait
       _checkTraits(traitComparisons);
-    } else if (substandardVersion == 5) {
+    } else if (substandardVersion == 1) {
+      // Decode traitKey from extraData
+      (comparisonEnum, token, id, traitValue, traitKey) = extraData.decodeSubstandard1();
 
+      // Declare the TraitComparison array
+      TraitComparison[] memory traitComparisons = new TraitComparison[](1);
+
+      traitComparisons[0] = TraitComparison({
+        token: token,
+        id: id,
+        comparisonEnum: comparisonEnum,
+        traitValue: traitValue,
+        traitKey: traitKey
+      });
+
+      // Check the trait
+      _checkTraits(traitComparisons);
+    } else if (substandardVersion == 2) {
+      // Decode traitKey from extraData
+      (comparisonEnum, token, id, traitValue, traitKey) = extraData.decodeSubstandard2();
+
+      // Declare the TraitComparison array
+      TraitComparison[] memory traitComparisons = new TraitComparison[](1);
+
+      traitComparisons[0] = TraitComparison({
+        token: token,
+        id: id,
+        comparisonEnum: comparisonEnum,
+        traitValue: traitValue,
+        traitKey: traitKey
+      });
+
+      // Check the trait
+      _checkTraits(traitComparisons);
+    } else if (substandardVersion == 3) {
+      // Decode traitKey from extraData
+      (comparisonEnum, token, id, traitValue, traitKey) = extraData.decodeSubstandard3();
+
+      // Declare the TraitComparison array
+      TraitComparison[] memory traitComparisons = new TraitComparison[](1);
+
+      traitComparisons[0] = TraitComparison({
+        token: token,
+        id: id,
+        comparisonEnum: comparisonEnum,
+        traitValue: traitValue,
+        traitKey: traitKey
+      });
+
+      // Check the trait
+      _checkTraits(traitComparisons);
+    } else if (substandardVersion == 4) {
+      uint256[] memory ids;
+      uint256 len = ids.length;
+
+      // Decode traitKey from extraData
+      (comparisonEnum, token, ids, traitValue, traitKey) = extraData.decodeSubstandard4();
+
+      // Declare the TraitComparison array
+      TraitComparison[] memory traitComparisons = new TraitComparison[](1);
+
+      for (uint256 i; i < len; i++) {
+        traitComparisons[i] = TraitComparison({
+          token: token,
+          comparisonEnum: comparisonEnum,
+          traitValue: traitValue,
+          traitKey: traitKey,
+          id: ids[i]
+        });
+      }
+      // Check the trait
+      _checkTraits(traitComparisons);
+    } else if (substandardVersion == 5) {
       // Decode comparisonEnum, expectedTraitValue, and traitKey from extraData
       (Substandard5Comparison memory substandard5Comparison) = extraData.decodeSubstandard5();
       uint256 len = substandard5Comparison.comparisonEnums.length;
+
       if (len != substandard5Comparison.traitValues.length || len != substandard5Comparison.traitKeys.length) {
         revert InvalidArrayLength();
       }
@@ -109,7 +182,9 @@ contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
 
       for (uint256 i; i < len; i++) {
         traitComparisons[i] = TraitComparison({
-          token: substandard5Comparison.traits == address(0) ? substandard5Comparison.token : substandard5Comparison.traits,
+          token: substandard5Comparison.traits == address(0)
+            ? substandard5Comparison.token
+            : substandard5Comparison.traits,
           comparisonEnum: substandard5Comparison.comparisonEnums[i],
           traitValue: substandard5Comparison.traitValues[i],
           traitKey: substandard5Comparison.traitKeys[i],

@@ -48,9 +48,9 @@ library SIP15Decoder {
   function decodeSubstandard4(bytes calldata extraData)
     internal
     pure
-    returns (uint8, address, uint256[] memory, bytes32[] memory, bytes32[] memory)
+    returns (uint8, address, uint256[] memory, bytes32, bytes32)
   {
-    return abi.decode(extraData[1:], (uint8, address, uint256[], bytes32[], bytes32[]));
+    return abi.decode(extraData[1:], (uint8, address, uint256[], bytes32, bytes32));
   }
 
   function decodeSubstandard5(bytes calldata extraData) internal pure returns (Substandard5Comparison memory) {

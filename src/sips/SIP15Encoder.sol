@@ -192,22 +192,22 @@ library SIP15Encoder {
 
   /**
    * @notice Encode extraData for SIP15-substandard-4, which specifies a single comparison
-   * enum and token and multiple identifiers,  multiple trait keys and trait values.
+   * enum and token and multiple identifiers,  single trait key and trait value.
    * each comparison is against a single identifier and a single traitValue with a single tratKey.
    * @param comparisonEnum the comparison enum 0 - 5
    * @param token the address of the collection
    * @param identifiers the tokenId of the token to be checked
-   * @param traitKeys the bytes32 encoded trait key for checking a trait on an ERC7496 token
-   * @param traitValues the expected value of the trait.
+   * @param traitKey the bytes32 encoded trait key for checking a trait on an ERC7496 token
+   * @param traitValue the expected value of the trait.
    */
   function encodeSubstandard4(
     uint8 comparisonEnum,
     address token,
     uint256[] memory identifiers,
-    bytes32[] memory traitValues,
-    bytes32[] memory traitKeys
+    bytes32 traitValue,
+    bytes32 traitKey
   ) internal pure returns (bytes memory) {
-    return abi.encodePacked(uint8(0x04), abi.encode(comparisonEnum, token, identifiers, traitValues, traitKeys));
+    return abi.encodePacked(uint8(0x04), abi.encode(comparisonEnum, token, identifiers, traitValue, traitKey));
   }
 
   /**
