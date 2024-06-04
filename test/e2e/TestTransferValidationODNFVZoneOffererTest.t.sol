@@ -47,8 +47,6 @@ import {IODSafeManager} from '@opendollar/interfaces/proxies/IODSafeManager.sol'
 import {SIP15Zone} from '../../src/contracts/SIP15Zone.sol';
 import {SIP15Encoder, Substandard5Comparison} from '../../src/sips/SIP15Encoder.sol';
 
-import 'forge-std/console2.sol';
-
 contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
   using FulfillmentLib for Fulfillment;
   using FulfillmentComponentLib for FulfillmentComponent;
@@ -316,9 +314,8 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
 
     // Convert the orders to advanced orders.
     for (uint256 i = 0; i < infra.orders.length; i++) {
-      infra.advancedOrders[i] = infra.orders[i].toAdvancedOrder(
-        1, 1, SIP15Encoder.encodeSubstandard5(_getExtraData(context.matchArgs.tokenId))
-      );
+      infra.advancedOrders[i] =
+        infra.orders[i].toAdvancedOrder(1, 1, SIP15Encoder.encodeSubstandard5(_getExtraData(context.matchArgs.tokenId)));
     }
     vm.warp(block.timestamp + vault721.timeDelay());
     // Set up event expectations.
@@ -364,30 +361,6 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     // Store the native token balances before the call for later reference.
     infra.callerBalanceBefore = address(this).balance;
     infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
-    console2.log('ADVANCED ORDERS LENGTH: ', infra.advancedOrders.length);
-
-    for (uint256 i; i < infra.advancedOrders.length; i++) {
-      console2.log('ADVANCED ORDERS ITERATION: ', i);
-      console2.log('CONSIDERATION NUMBER: ', infra.advancedOrders[i].parameters.consideration.length);
-      console2.log('OFFERER: ', infra.advancedOrders[i].parameters.offerer);
-      for (uint256 j; j < infra.advancedOrders[i].parameters.offer.length; j++) {
-        console2.log('OFFERS ITEREATION: ', j);
-        console2.log('token: ', infra.advancedOrders[i].parameters.offer[j].token);
-        console2.log('itemType: ', uint8(infra.advancedOrders[i].parameters.offer[j].itemType));
-        console2.log('identifierOrCriteria: ', infra.advancedOrders[i].parameters.offer[j].identifierOrCriteria);
-        console2.log('startAmount: ', infra.advancedOrders[i].parameters.offer[j].startAmount);
-        console2.log('endAmount: ', infra.advancedOrders[i].parameters.offer[j].endAmount);
-      }
-
-      for (uint256 q; q < infra.advancedOrders[i].parameters.consideration.length; q++) {
-        console2.log('CONSIDERATION ITERATION: ', q);
-        console2.log('token: ', infra.advancedOrders[i].parameters.consideration[q].token);
-        console2.log('itemType: ', uint8(infra.advancedOrders[i].parameters.consideration[q].itemType));
-        console2.log('identifierOrCriteria: ', infra.advancedOrders[i].parameters.consideration[q].identifierOrCriteria);
-        console2.log('startAmount: ', infra.advancedOrders[i].parameters.consideration[q].startAmount);
-        console2.log('endAmount: ', infra.advancedOrders[i].parameters.consideration[q].endAmount);
-        console2.log('recipient: ', infra.advancedOrders[i].parameters.consideration[q].recipient);
-      }
     }
 
     // Make the call to Seaport.
