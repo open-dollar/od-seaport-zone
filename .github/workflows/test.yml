@@ -63,8 +63,9 @@ jobs:
           run: forge build
           
         - name: Build Seaport
-          run: cd lib/seaport/; FOUNDRY_PROFILE=reference forge build; FOUNDRY_PROFILE=optimized forge build;
-
+        - uses: ./lib/seaport/
+            run: FOUNDRY_PROFILE=optimized forge build
+            
         - name: "Create env file"
           run: |
             touch .env
