@@ -63,10 +63,7 @@ contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
     return this.authorizeOrder.selector;
   }
 
-  function _validateSubstandard(
-    uint8 substandardVersion,
-    bytes calldata extraData
-  ) internal view {
+  function _validateSubstandard(uint8 substandardVersion, bytes calldata extraData) internal view {
     address token;
     uint256 id;
     uint8 comparisonEnum;
@@ -149,7 +146,7 @@ contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
       (comparisonEnum, token, ids, traitValue, traitKey) = extraData.decodeSubstandard4();
 
       // Declare the TraitComparison array
-      TraitComparison[] memory traitComparisons = new TraitComparison[](1);
+      TraitComparison[] memory traitComparisons = new TraitComparison[](len);
 
       for (uint256 i; i < len; i++) {
         traitComparisons[i] = TraitComparison({

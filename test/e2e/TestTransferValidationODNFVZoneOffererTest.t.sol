@@ -362,6 +362,17 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     infra.callerBalanceBefore = address(this).balance;
     infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
     // Make the call to Seaport.
+    bytes32[] memory traitKeys = new bytes32[](2);
+    traitKeys[0] = COLLATERAL;
+    traitKeys[1] = DEBT;
+    bytes32[] memory _traitValues = new bytes32[](2);
+    _traitValues[0] = bytes32(uint256(10 ether));
+    _traitValues[1] = bytes32(uint256(0.1 ether));
+    vm.mockCall(
+      address(zone),
+      abi.encodeWithSelector(IVault721Adapter.getTraitValues.selector, context.matchArgs.tokenId, traitKeys),
+      abi.encode(_traitValues)
+    );
     context.seaport.matchAdvancedOrders{
       value: (context.matchArgs.amount * context.matchArgs.orderPairCount) + context.matchArgs.excessNativeTokens
     }(
@@ -1152,6 +1163,14 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     bytes32[] memory traitKeys = new bytes32[](2);
     traitKeys[0] = COLLATERAL;
     traitKeys[1] = DEBT;
+    bytes32[] memory _traitValues = new bytes32[](2);
+    _traitValues[0] = bytes32(uint256(10 ether));
+    _traitValues[1] = bytes32(uint256(1 ether));
+    vm.mockCall(
+      address(vault721Adapter),
+      abi.encodeWithSelector(IVault721Adapter.getTraitValues.selector, tokenId, traitKeys),
+      abi.encode(_traitValues)
+    );
     traits = vault721Adapter.getTraitValues(tokenId, traitKeys);
   }
 
@@ -1160,7 +1179,7 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     bytes32[] memory keys = new bytes32[](2);
     uint8[] memory _comparisonEnums = new uint8[](2);
     _comparisonEnums[0] = 5;
-    _comparisonEnums[1] = 5;
+    _comparisonEnums[1] = 3;
     keys[0] = COLLATERAL;
     keys[1] = DEBT;
     Substandard5Comparison memory subStandard5Comparison = Substandard5Comparison({

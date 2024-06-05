@@ -84,26 +84,26 @@ contract SIP15Encoder_Unit_test is Test {
     ).withSalt(0).saveDefault(SINGLE_721_Order);
   }
 
-  function test_EncodeSubstandard1EfficientFuzz(Context memory context) public view {
+  function test_EncodeSubstandard1EfficientFuzz(Context memory context) public {
     ZoneParameters memory zoneParams = _createZoneParams(context);
     this.encodeSubstandard1Efficient(zoneParams, context.fuzzInputs.traitKey);
   }
 
-  function test_EncodeSubstandard1(Context memory context) public view {
+  function test_EncodeSubstandard1(Context memory context) public {
     ZoneParameters memory zoneParams = _createZoneParams(context);
     this.encodeSubstandard1(
       zoneParams, context.fuzzInputs.comparisonEnum, context.fuzzInputs.traitValue, context.fuzzInputs.traitKey
     );
   }
 
-  function test_EncodeSubstandard2(Context memory context) public view {
+  function test_EncodeSubstandard2(Context memory context) public {
     ZoneParameters memory zoneParams = _createZoneParams(context);
     this.encodeSubstandard1(
       zoneParams, context.fuzzInputs.comparisonEnum, context.fuzzInputs.traitValue, context.fuzzInputs.traitKey
     );
   }
 
-  function test_EncodeSubstandard3(Context memory context) public view {
+  function test_EncodeSubstandard3(Context memory context) public {
     this.encodeSubstandard3(
       context.fuzzInputs.comparisonEnum,
       context.fuzzInputs.token,
@@ -113,7 +113,7 @@ contract SIP15Encoder_Unit_test is Test {
     );
   }
 
-  function encodeSubstandard1Efficient(ZoneParameters calldata zoneParams, bytes32 _traitKey) public view {
+  function encodeSubstandard1Efficient(ZoneParameters calldata zoneParams, bytes32 _traitKey) public {
     bytes memory encodedData = SIP15Encoder.encodeSubstandard1Efficient(zoneParams, _traitKey);
     uint8 substandard = uint8(this.decodeSubstandardVersion(encodedData, 0));
 
