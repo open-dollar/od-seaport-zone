@@ -63,9 +63,9 @@ jobs:
           run: forge build
           
         - name: Build Seaport
-            working-directory: ./lib/seaport/
-            run: FOUNDRY_PROFILE=optimized forge build
-            
+          run: FOUNDRY_PROFILE=optimized forge build
+          working-directory: ./lib/seaport
+
         - name: "Create env file"
           run: |
             touch .env
