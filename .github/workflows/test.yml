@@ -62,12 +62,20 @@ jobs:
         - name: Build
           run: forge build
           
-        - name: Build Seaport
+        - name: Build Reference Seaport
+          run: FOUNDRY_PROFILE=reference forge build
+          working-directory: ./lib/seaport
+
+        - name: Build Optimized Seaport
           run: FOUNDRY_PROFILE=optimized forge build
           working-directory: ./lib/seaport
-          
+
+        - name: copy reference json
+          run: cp -r ./lib/seaport/reference-out ./reference-out
+
         - name: copy optimized json
           run: cp -r ./lib/seaport/optimized-out ./optimized-out
+
 
         - name: "Create env file"
           run: |
