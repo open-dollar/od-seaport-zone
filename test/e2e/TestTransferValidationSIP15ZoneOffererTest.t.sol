@@ -17,6 +17,7 @@ import {
 
 import {UnavailableReason} from 'seaport-sol/src/SpaceEnums.sol';
 import {BaseOrderTest} from 'seaport/test/foundry/utils/BaseOrderTest.sol';
+import {SetUp} from './SetUp.sol';
 import {ConsiderationInterface} from 'seaport-types/src/interfaces/ConsiderationInterface.sol';
 
 import {
@@ -47,7 +48,7 @@ import {IODSafeManager} from '@opendollar/interfaces/proxies/IODSafeManager.sol'
 import {SIP15Zone} from '../../src/contracts/SIP15Zone.sol';
 import {SIP15Encoder, Substandard5Comparison} from '../../src/sips/SIP15Encoder.sol';
 
-contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
+contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
   using FulfillmentLib for Fulfillment;
   using FulfillmentComponentLib for FulfillmentComponent;
   using FulfillmentComponentLib for FulfillmentComponent[];
@@ -64,11 +65,6 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
   SIP15Zone zone;
   TestZone testZone;
   Vault721Adapter public vault721Adapter;
-  IVault721 public vault721;
-  IODSafeManager public safeManager;
-
-  address public vault721Address = address(0x0005AFE00fF7E7FF83667bFe4F2996720BAf0B36);
-  address public safeManagerAddress = 0x8646CBd915eAAD1a4E2Ba5e2b67Acec4957d5f1a;
 
   // constant strings for recalling struct lib defaults
   // ideally these live in a base test class
@@ -77,12 +73,9 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
 
   function setUp() public virtual override {
     super.setUp();
-    vm.createSelectFork(vm.envString('ARB_MAINNET_RPC'));
+    
     zone = new SIP15Zone();
-
-    vault721 = IVault721(vault721Address);
     vault721Adapter = new Vault721Adapter(vault721);
-    safeManager = IODSafeManager(safeManagerAddress);
 
     matchFulfillmentHelper = new MatchFulfillmentHelper();
     fulfillAvailableFulfillmentHelper = new FulfillAvailableHelper();
@@ -1198,12 +1191,12 @@ contract TestTransferValidationODNFVZoneOffererTest is BaseOrderTest {
     _zoneHash = SIP15Encoder.generateZoneHashForSubstandard5(_substandard5Comparison);
   }
 
-  function deployOrFind(address owner) public returns (address payable) {
-    address proxy = vault721.getProxy(owner);
-    if (proxy == address(0)) {
-      return vault721.build(owner);
-    } else {
-      return payable(address(proxy));
-    }
-  }
+  // function deployOrFind(address owner) public returns (address payable) {
+  //   address proxy = vault721.getProxy(owner);
+  //   if (proxy == address(0)) {
+  //     return vault721.build(owner);
+  //   } else {
+  //     return payable(address(proxy));
+  //   }
+  // }
 }
