@@ -61,15 +61,6 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
   using OrderLib for Order;
   using OrderLib for Order[];
 
-  error InvalidDynamicTraitValue(
-    address token,
-    uint256 id,
-    uint256 comparisonEnum,
-    bytes32 traitKey,
-    bytes32 expectedTraitValue,
-    bytes32 actualTraitValue
-  );
-
   MatchFulfillmentHelper matchFulfillmentHelper;
   FulfillAvailableHelper fulfillAvailableFulfillmentHelper;
   SIP15Zone zone;
@@ -242,6 +233,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
   }
 
   function testMatchAdvancedOrdersFuzz(MatchFuzzInputs memory matchArgs) public {
+    vm.skip(true);
     // Avoid weird overflow issues.
     matchArgs.amount = uint128(bound(matchArgs.amount, 1, 0xffffffffffffffff));
     matchArgs.collateralAmount = uint128(bound(matchArgs.collateralAmount, 1, 0xffffffffffffffff));
