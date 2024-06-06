@@ -93,12 +93,10 @@ library SIP15Encoder {
   }
 
   /**
-   * @notice Generate a zone hash for an SIP15 contract, 
+   * @notice Generate a zone hash for an SIP15 contract,
    * @param encodedData the SIP15 encoded extra data
    */
-  function generateZoneHash(
-    bytes memory encodedData
-  ) internal pure returns (bytes32) {
+  function generateZoneHash(bytes memory encodedData) internal pure returns (bytes32) {
     return keccak256(abi.encodePacked(encodedData));
   }
 

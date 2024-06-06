@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
@@ -7,12 +6,10 @@ import {ERC20ForTest} from '@opendollar/test/mocks/ERC20ForTest.sol';
 import {ISAFEEngine} from '@opendollar/interfaces/ISAFEEngine.sol';
 import {BaseOrderTest} from 'seaport/test/foundry/utils/BaseOrderTest.sol';
 import {ODProxy} from '@opendollar/contracts/proxies/ODProxy.sol';
-import {
-  IBaseOracle
-} from '@opendollar/interfaces/oracles/IBaseOracle.sol';
+import {IBaseOracle} from '@opendollar/interfaces/oracles/IBaseOracle.sol';
 
 contract SetUp is DeployForTest, ODTest, BaseOrderTest {
-      uint256 public constant MINT_AMOUNT = 1000 ether;
+  uint256 public constant MINT_AMOUNT = 1000 ether;
   uint256 public constant MULTIPLIER = 10; // for over collateralization
   uint256 public debtCeiling;
 
@@ -21,9 +18,9 @@ contract SetUp is DeployForTest, ODTest, BaseOrderTest {
 
   ERC20ForTest public tokenForTest;
 
-    function setUp() public virtual override {
-        super.setUp();
-        run();
+  function setUp() public virtual override {
+    super.setUp();
+    run();
 
     for (uint256 i = 0; i < collateralTypes.length; i++) {
       bytes32 _cType = collateralTypes[i];
@@ -46,9 +43,9 @@ contract SetUp is DeployForTest, ODTest, BaseOrderTest {
 
     ISAFEEngine.SAFEEngineParams memory params = safeEngine.params();
     debtCeiling = params.safeDebtCeiling;
-    }
+  }
 
-    function deployOrFind(address owner) public returns (address) {
+  function deployOrFind(address owner) public returns (address) {
     address proxy = vault721.getProxy(owner);
     if (proxy == address(0)) {
       return address(vault721.build(owner));
@@ -57,7 +54,7 @@ contract SetUp is DeployForTest, ODTest, BaseOrderTest {
     }
   }
 
-function _setCollateralPrice(bytes32 _collateral, uint256 _price) internal {
+  function _setCollateralPrice(bytes32 _collateral, uint256 _price) internal {
     IBaseOracle _oracle = oracleRelayer.cParams(_collateral).oracle;
     vm.mockCall(
       address(_oracle), abi.encodeWithSelector(IBaseOracle.getResultWithValidity.selector), abi.encode(_price, true)
@@ -90,11 +87,10 @@ function _setCollateralPrice(bytes32 _collateral, uint256 _price) internal {
     ODProxy(_proxy).execute(address(basicActions), payload);
   }
 
-    function genDebt(uint256 _safeId, uint256 _deltaWad, address _proxy) public {
+  function genDebt(uint256 _safeId, uint256 _deltaWad, address _proxy) public {
     bytes memory payload = abi.encodeWithSelector(
       basicActions.generateDebt.selector, address(safeManager), address(coinJoin), _safeId, _deltaWad
     );
     ODProxy(_proxy).execute(address(basicActions), payload);
   }
-
 }
