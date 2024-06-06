@@ -6,7 +6,7 @@
 @opendollar/interfaces/=node_modules/@opendollar/contracts/src/interfaces/
 @opendollar/libraries/=node_modules/@opendollar/contracts/src/libraries/
 @opendollar/test/=node_modules/@opendollar/contracts/test/
-
+@opendollar/script=node_modules/@opendollar/contracts/script/
 seaport-types/=lib/seaport-types/
 seaport-core/=lib/seaport-core/
 seaport/=lib/seaport/
