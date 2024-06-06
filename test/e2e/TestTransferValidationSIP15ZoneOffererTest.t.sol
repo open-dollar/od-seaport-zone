@@ -48,7 +48,6 @@ import {IODSafeManager} from '@opendollar/interfaces/proxies/IODSafeManager.sol'
 import {SIP15ZoneEventsAndErrors} from '../../src/interfaces/SIP15ZoneEventsAndErrors.sol';
 import {SIP15Zone} from '../../src/contracts/SIP15Zone.sol';
 import {SIP15Encoder, Substandard5Comparison} from '../../src/sips/SIP15Encoder.sol';
-import 'forge-std/console2.sol';
 
 contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
   using FulfillmentLib for Fulfillment;
@@ -106,9 +105,8 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
 
     OrderComponentsLib.empty().withOfferer(offerer1.addr).withZone(address(zone)).withOrderType(
       OrderType.FULL_RESTRICTED
-    ).withStartTime(block.timestamp).withEndTime(block.timestamp + vault721.timeDelay() + 100_000).withZoneHash(
-      bytes32(0)
-    ).withSalt(0).withConduitKey(conduitKeyOne) // not strictly necessary
+    ).withStartTime(block.timestamp).withEndTime(block.timestamp + vault721.timeDelay() + 100000).withZoneHash(bytes32(0))
+      .withSalt(0).withConduitKey(conduitKeyOne) // not strictly necessary
       // fill in offer later
       // fill in consideration later
       .saveDefault(VALIDATION_ZONE);
@@ -234,7 +232,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     }
   }
 
-  function testFail(function(Context memory) external fn, Context memory context) internal {
+    function testFail(function(Context memory) external fn, Context memory context) internal {
     try fn(context) {
       fail();
     } catch (bytes memory reason) {
@@ -260,7 +258,8 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
       matchArgs.shouldIncludeNativeConsideration || matchArgs.considerationItemsPerPrimeOrderCount >= 3;
     // Only include an excess offer item when NOT using the transfer
     // validation zone or the zone will revert.
-    matchArgs.shouldIncludeExcessOfferItems = matchArgs.shouldIncludeExcessOfferItems
+    matchArgs.shouldIncludeExcessOfferItems = 
+     matchArgs.shouldIncludeExcessOfferItems
       && !(matchArgs.shouldUseTransferValidationZoneForPrime || matchArgs.shouldUseTransferValidationZoneForMirror);
     // Include some excess native tokens to check that they're ending up
     // with the caller afterward.
@@ -282,7 +281,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     testFail(this.execMatchAdvancedOrders_Revert_DebtIncrease, Context(consideration, emptyFulfill, matchArgs));
   }
 
-  function execMatchAdvancedOrdersFuzz(Context memory context) external stateless {
+    function execMatchAdvancedOrdersFuzz(Context memory context) external stateless {
     // Set up the infrastructure for this function in a struct to avoid
     // stack depth issues.
     MatchAdvancedOrdersInfra memory infra = MatchAdvancedOrdersInfra({
@@ -309,9 +308,6 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
 
     vm.assume(fuzzPrimeOfferer.addr != fuzzMirrorOfferer.addr);
 
-    console2.log('prime offerer', fuzzPrimeOfferer.addr);
-    console2.log('mirror offerer', fuzzMirrorOfferer.addr);
-
     fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
     fuzzMirrorProxy = deployOrFind(fuzzMirrorOfferer.addr);
 
@@ -337,7 +333,8 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
 
     // Convert the orders to advanced orders.
     for (uint256 i = 0; i < infra.orders.length; i++) {
-      infra.advancedOrders[i] = infra.orders[i].toAdvancedOrder(1, 1, _getExtraData(context.matchArgs.tokenId));
+      infra.advancedOrders[i] =
+        infra.orders[i].toAdvancedOrder(1, 1, _getExtraData(context.matchArgs.tokenId));
     }
     vm.warp(block.timestamp + vault721.timeDelay());
     // Set up event expectations.
@@ -453,8 +450,10 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     }
   }
 
+
   function execMatchAdvancedOrders_Revert_DebtIncrease(Context memory context) external stateless {
-    context.matchArgs.shouldIncludeExcessOfferItems = false;
+      
+      context.matchArgs.shouldIncludeExcessOfferItems = false;
     // Set up the infrastructure for this function in a struct to avoid
     // stack depth issues.
     MatchAdvancedOrdersInfra memory infra = MatchAdvancedOrdersInfra({
@@ -475,12 +474,9 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     fuzzPrimeOfferer = makeAndAllocateAccount(context.matchArgs.primeOfferer);
     // The mirror offerer is offering ERC20/Native and considering NFTs.
     fuzzMirrorOfferer = makeAndAllocateAccount(context.matchArgs.mirrorOfferer);
-    //  fuzzMirrorOfferer.addr = address(uint160(bound(uint160(fuzzPrimeOfferer.addr), 1, type(uint160).max)));
-    vm.assume(fuzzPrimeOfferer.addr != fuzzMirrorOfferer.addr);
-
-    console2.log('prime offerer', fuzzPrimeOfferer.addr);
-    console2.log('mirror offerer', fuzzMirrorOfferer.addr);
-
+        //  fuzzMirrorOfferer.addr = address(uint160(bound(uint160(fuzzPrimeOfferer.addr), 1, type(uint160).max)));
+     vm.assume(fuzzPrimeOfferer.addr != fuzzMirrorOfferer.addr);
+ 
     fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
     fuzzMirrorProxy = deployOrFind(fuzzMirrorOfferer.addr);
 
@@ -506,14 +502,16 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
 
     // Convert the orders to advanced orders.
     for (uint256 i = 0; i < infra.orders.length; i++) {
-      infra.advancedOrders[i] = infra.orders[i].toAdvancedOrder(1, 1, _getExtraData(context.matchArgs.tokenId));
+      infra.advancedOrders[i] =
+        infra.orders[i].toAdvancedOrder(1, 1, _getExtraData(context.matchArgs.tokenId));
     }
+    
 
     // offerer takes on more debt so that vault state changes negatively before sale
-
+    
     uint256[] memory safes = safeManager.getSafes(fuzzPrimeProxy);
 
-    for (uint256 i; i < safes.length; i++) {
+    for(uint256 i; i < safes.length; i++){
       vm.prank(fuzzPrimeOfferer.addr);
       genDebt(safes[i], context.matchArgs.collateralAmount / 8, fuzzPrimeProxy);
     }
@@ -521,10 +519,14 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     vm.warp(block.timestamp + vault721.timeDelay());
 
     //expect revert
-    //empty expect revert because I'm too lazy to calculate the exact amount of extra tax getting pulled out.
+    //empty expect revert because I'm too lazy to calculate the exact amount of extra tax getting pulled
     // vm.expectRevert(abi.encodeWithSelector(SIP15ZoneEventsAndErrors.InvalidDynamicTraitValue.selector, address(vault721Adapter), safes[0], 3, DEBTKEY, bytes32(context.matchArgs.collateralAmount / 2), bytes32(((context.matchArgs.collateralAmount / 2) + (context.matchArgs.collateralAmount / 8) - 99513020104531))));
     vm.expectRevert();
-
+ 
+     
+    // Store the native token balances before the call for later reference.
+    infra.callerBalanceBefore = address(this).balance;
+    infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
     // Make the call to Seaport.
 
     context.seaport.matchAdvancedOrders{
@@ -907,17 +909,21 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     // used as the number of order pairs to make here.
     for (i = 0; i < context.matchArgs.orderPairCount; i++) {
       // Mint the NFTs for the prime offerer to sell.
-      vm.prank(fuzzPrimeProxy);
+  vm.prank(fuzzPrimeProxy);
       uint256 currentVaultId = safeManager.openSAFE(TKN, fuzzPrimeProxy); //NOTE: THIS may be causing the order already fullfilled error
-        // test721_1.mint(fuzzPrimeOfferer.addr, (context.matchArgs.tokenId + i) * 2);
-
-      vm.startPrank(fuzzPrimeOfferer.addr);
+      test721_1.mint(fuzzPrimeOfferer.addr, (context.matchArgs.tokenId + i) * 2);
+    
+    vm.startPrank(fuzzPrimeOfferer.addr);
       tokenForTest.mint(context.matchArgs.collateralAmount);
       tokenForTest.approve(fuzzPrimeProxy, context.matchArgs.collateralAmount);
       depositCollatAndGenDebt(
-        TKN, currentVaultId, context.matchArgs.collateralAmount, context.matchArgs.collateralAmount / 2, fuzzPrimeProxy
-      );
-      vm.stopPrank();
+    TKN,
+    currentVaultId,
+    context.matchArgs.collateralAmount,
+    context.matchArgs.collateralAmount / 2,
+    fuzzPrimeProxy
+  );
+  vm.stopPrank();
       // Build the OfferItem array for the prime offerer's order.
       infra.offerItemArray = _buildPrimeOfferItemArray(context, i);
       // Build the ConsiderationItem array for the prime offerer's order.
