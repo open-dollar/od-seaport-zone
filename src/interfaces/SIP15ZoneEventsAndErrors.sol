@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import {IODNFVZone} from './IODNFVZone.sol';
+import {ISIP15Zone} from './ISIP15Zone.sol';
 
-interface ODNFVZoneEventsAndErrors is IODNFVZone {
+interface SIP15ZoneEventsAndErrors is ISIP15Zone {
   ///////////////////////// Trait Comparison///////////////////////////
   event TraitsVerified(TraitComparison traitComparison);
 
   error InvalidZoneHash(bytes32 zoneHash, bytes32 keccak256ExtraData);
+  error InvalidArrayLength();
   // error InvalidExtraData(bytes extraData);
   error UnsupportedSubstandard(uint256 substandardVersion);
+
   error InvalidDynamicTraitValue(
     address token,
     uint256 id,
@@ -18,6 +20,7 @@ interface ODNFVZoneEventsAndErrors is IODNFVZone {
     bytes32 expectedTraitValue,
     bytes32 actualTraitValue
   );
+
   error InvalidComparisonEnum(uint256 comparisonEnum);
 
   /////////////////////// Pausable ///////////////////

@@ -90,17 +90,4 @@ contract Vault721Adapter is IERC7496 {
       JSON_CLOSE
     );
   }
-
-  // ERC721 functions that need implementation
-
-  // function approve(address to, uint256 tokenId) external;
-  // function balanceOf(address owner) external view returns (uint256 balance);
-  // function getApproved(uint256 tokenId) external view returns (address operator);
-  // function isApprovedForAll(address owner, address operator) external view returns (bool);
-  // function ownerOf(uint256 tokenId) external view returns (address owner);
-  // function safeTransferFrom(address from, address to, uint256 tokenId) external;
-  // function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) external;
-  // function setApprovalForAll(address operator, bool approved) external;
-  // function supportsInterface(bytes4 interfaceId) external view returns (bool);
-  // function transferFrom(address from, address to, uint256 tokenId) external;
 }
