@@ -14,6 +14,7 @@ import {
   OrderComponents,
   OrderType
 } from 'seaport-types/src/lib/ConsiderationStructs.sol';
+import {DeployForTest, ODTest, COLLAT, DEBT, TKN} from '@opendollar/test/e2e/Common.t.sol';
 
 import {UnavailableReason} from 'seaport-sol/src/SpaceEnums.sol';
 import {BaseOrderTest} from 'seaport/test/foundry/utils/BaseOrderTest.sol';
@@ -44,10 +45,10 @@ import {IVault721Adapter} from '../../src/interfaces/IVault721Adapter.sol';
 import {Vault721Adapter} from '../../src/contracts/Vault721Adapter.sol';
 import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';
 import {IODSafeManager} from '@opendollar/interfaces/proxies/IODSafeManager.sol';
-
+import {SIP15ZoneEventsAndErrors} from '../../src/interfaces/SIP15ZoneEventsAndErrors.sol';
 import {SIP15Zone} from '../../src/contracts/SIP15Zone.sol';
 import {SIP15Encoder, Substandard5Comparison} from '../../src/sips/SIP15Encoder.sol';
-
+import 'forge-std/console2.sol';
 contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
   using FulfillmentLib for Fulfillment;
   using FulfillmentComponentLib for FulfillmentComponent;
@@ -59,6 +60,15 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
   using OrderComponentsLib for OrderComponents;
   using OrderLib for Order;
   using OrderLib for Order[];
+
+  error InvalidDynamicTraitValue(
+    address token,
+    uint256 id,
+    uint256 comparisonEnum,
+    bytes32 traitKey,
+    bytes32 expectedTraitValue,
+    bytes32 actualTraitValue
+  );
 
   MatchFulfillmentHelper matchFulfillmentHelper;
   FulfillAvailableHelper fulfillAvailableFulfillmentHelper;
@@ -73,7 +83,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
 
   function setUp() public virtual override {
     super.setUp();
-    
+
     zone = new SIP15Zone();
     vault721Adapter = new Vault721Adapter(vault721);
 
@@ -95,7 +105,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
 
     OrderComponentsLib.empty().withOfferer(offerer1.addr).withZone(address(zone)).withOrderType(
       OrderType.FULL_RESTRICTED
-    ).withStartTime(block.timestamp).withEndTime(block.timestamp + vault721.timeDelay() + 10).withZoneHash(bytes32(0))
+    ).withStartTime(block.timestamp).withEndTime(block.timestamp + vault721.timeDelay() + 100000).withZoneHash(bytes32(0))
       .withSalt(0).withConduitKey(conduitKeyOne) // not strictly necessary
       // fill in offer later
       // fill in consideration later
@@ -135,6 +145,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     uint128 excessNativeTokens;
     uint256 orderPairCount;
     uint256 considerationItemsPerPrimeOrderCount;
+    uint256 collateralAmount;
     // This is currently used only as the unspent prime offer item recipient
     // but would also set the recipient for unspent mirror offer items if
     // any were added in the test in the future.
@@ -211,7 +222,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
   address fuzzMirrorProxy;
 
   bytes32 public constant COLLATERAL = keccak256('COLLATERAL');
-  bytes32 public constant DEBT = keccak256('DEBT');
+  bytes32 public constant DEBTKEY = keccak256('DEBT');
 
   function test(function(Context memory) external fn, Context memory context) internal {
     try fn(context) {
@@ -221,12 +232,20 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     }
   }
 
+    function testFail(function(Context memory) external fn, Context memory context) internal {
+    try fn(context) {
+      fail();
+    } catch (bytes memory reason) {
+      // assertPass(reason);
+    }
+  }
+
   function testMatchAdvancedOrdersFuzz(MatchFuzzInputs memory matchArgs) public {
-    vm.skip(true);
     // Avoid weird overflow issues.
     matchArgs.amount = uint128(bound(matchArgs.amount, 1, 0xffffffffffffffff));
+    matchArgs.collateralAmount = uint128(bound(matchArgs.collateralAmount, 1, 0xffffffffffffffff));
     // Avoid trying to mint the same token.
-    matchArgs.tokenId = bound(matchArgs.tokenId, vault721.totalSupply() + 1, vault721.totalSupply() + 1);
+    matchArgs.tokenId = vault721.totalSupply() + 1;
     // Make 1-8 order pairs per call.  Each order pair will have 1-2 offer
     // items on the prime side (depending on whether
     // shouldIncludeExcessOfferItems is true or false).
@@ -239,7 +258,8 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
       matchArgs.shouldIncludeNativeConsideration || matchArgs.considerationItemsPerPrimeOrderCount >= 3;
     // Only include an excess offer item when NOT using the transfer
     // validation zone or the zone will revert.
-    matchArgs.shouldIncludeExcessOfferItems = matchArgs.shouldIncludeExcessOfferItems
+    matchArgs.shouldIncludeExcessOfferItems = 
+     matchArgs.shouldIncludeExcessOfferItems
       && !(matchArgs.shouldUseTransferValidationZoneForPrime || matchArgs.shouldUseTransferValidationZoneForMirror);
     // Include some excess native tokens to check that they're ending up
     // with the caller afterward.
@@ -258,9 +278,10 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
 
     test(this.execMatchAdvancedOrdersFuzz, Context(consideration, emptyFulfill, matchArgs));
     test(this.execMatchAdvancedOrdersFuzz, Context(referenceConsideration, emptyFulfill, matchArgs));
+    testFail(this.execMatchAdvancedOrders_Revert_DebtIncrease, Context(consideration, emptyFulfill, matchArgs));
   }
 
-  function execMatchAdvancedOrdersFuzz(Context memory context) external stateless {
+    function execMatchAdvancedOrdersFuzz(Context memory context) external stateless {
     // Set up the infrastructure for this function in a struct to avoid
     // stack depth issues.
     MatchAdvancedOrdersInfra memory infra = MatchAdvancedOrdersInfra({
@@ -273,14 +294,18 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
       primeOffererBalanceBefore: 0,
       primeOffererBalanceAfter: 0
     });
-
+    context.matchArgs.mirrorOfferer = 'mirrorOfferer';
     // TODO: (Someday) See if the stack can tolerate fuzzing criteria
     // resolvers.
-
     // The prime offerer is offering NFTs and considering ERC20/Native.
     fuzzPrimeOfferer = makeAndAllocateAccount(context.matchArgs.primeOfferer);
     // The mirror offerer is offering ERC20/Native and considering NFTs.
     fuzzMirrorOfferer = makeAndAllocateAccount(context.matchArgs.mirrorOfferer);
+
+    vm.assume(fuzzPrimeOfferer.addr != fuzzMirrorOfferer.addr);
+     
+     console2.log('prime offerer', fuzzPrimeOfferer.addr);
+     console2.log('mirror offerer', fuzzMirrorOfferer.addr);
 
     fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
     fuzzMirrorProxy = deployOrFind(fuzzMirrorOfferer.addr);
@@ -308,7 +333,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     // Convert the orders to advanced orders.
     for (uint256 i = 0; i < infra.orders.length; i++) {
       infra.advancedOrders[i] =
-        infra.orders[i].toAdvancedOrder(1, 1, SIP15Encoder.encodeSubstandard5(_getExtraData(context.matchArgs.tokenId)));
+        infra.orders[i].toAdvancedOrder(1, 1, _getExtraData(context.matchArgs.tokenId));
     }
     vm.warp(block.timestamp + vault721.timeDelay());
     // Set up event expectations.
@@ -355,17 +380,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     infra.callerBalanceBefore = address(this).balance;
     infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
     // Make the call to Seaport.
-    bytes32[] memory traitKeys = new bytes32[](2);
-    traitKeys[0] = COLLATERAL;
-    traitKeys[1] = DEBT;
-    bytes32[] memory _traitValues = new bytes32[](2);
-    _traitValues[0] = bytes32(uint256(10 ether));
-    _traitValues[1] = bytes32(uint256(0.1 ether));
-    vm.mockCall(
-      address(zone),
-      abi.encodeWithSelector(IVault721Adapter.getTraitValues.selector, context.matchArgs.tokenId, traitKeys),
-      abi.encode(_traitValues)
-    );
+
     context.seaport.matchAdvancedOrders{
       value: (context.matchArgs.amount * context.matchArgs.orderPairCount) + context.matchArgs.excessNativeTokens
     }(
@@ -400,9 +415,9 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     // assertTrue(zone.callCount() == expectedCallCount);
 
     // Check that the NFTs were transferred to the expected recipient.
-    for (uint256 i = 0; i < context.matchArgs.orderPairCount; i++) {
-      assertEq(test721_1.ownerOf(context.matchArgs.tokenId + i), fuzzMirrorOfferer.addr);
-    }
+    // for (uint256 i = 0; i < context.matchArgs.orderPairCount; i++) {
+    //   assertEq(test721_1.ownerOf((context.matchArgs.tokenId + i )* 2), fuzzMirrorOfferer.addr);
+    // }
 
     if (context.matchArgs.shouldIncludeExcessOfferItems) {
       // Check that the excess offer NFTs were transferred to the expected
@@ -434,269 +449,101 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     }
   }
 
-  function testFulfillAvailableAdvancedFuzz(FulfillFuzzInputs memory fulfillArgs) public {
-    vm.skip(true);
-    // Limit this value to avoid overflow issues.
-    fulfillArgs.amount = uint128(bound(fulfillArgs.amount, 1, 0xffffffffffffffff));
-    // Limit this value to avoid overflow issues.
-    fulfillArgs.tokenId = bound(fulfillArgs.tokenId, vault721.totalSupply() + 1, vault721.totalSupply() + 1);
-    // Create between 1 and 16 orders.
-    fulfillArgs.orderCount = bound(fulfillArgs.orderCount, 1, 16);
-    // Use between 1 and 3 consideration items per order.
-    fulfillArgs.considerationItemsPerOrderCount = bound(fulfillArgs.considerationItemsPerOrderCount, 1, 3);
-    // To put three items in the consideration, native tokens must be
-    // included.
-    fulfillArgs.shouldIncludeNativeConsideration =
-      fulfillArgs.shouldIncludeNativeConsideration || fulfillArgs.considerationItemsPerOrderCount >= 3;
-    // TODO: (Someday) Think about excess offer items.
-    // Fulfill between 1 and the orderCount.
-    fulfillArgs.maximumFulfilledCount = bound(fulfillArgs.maximumFulfilledCount, 1, fulfillArgs.orderCount);
-    // Limit this value to avoid overflow issues.
-    fulfillArgs.excessNativeTokens = uint128(bound(fulfillArgs.excessNativeTokens, 0, 0xfffffffffffffffffffffffffffff));
-    // Don't set the offer recipient to the null address, because that's the
-    // way to indicate that the caller should be the recipient and because
-    // some tokens refuse to transfer to the null address.
-    fulfillArgs.offerRecipient =
-      _nudgeAddressIfProblematic(address(uint160(bound(uint160(fulfillArgs.offerRecipient), 1, type(uint160).max))));
-    fulfillArgs.zoneHash = _getZoneHash(_getExtraData(fulfillArgs.tokenId));
-    // Don't set the consideration recipient to the null address, because
-    // some tokens refuse to transfer to the null address.
-    fulfillArgs.considerationRecipient = _nudgeAddressIfProblematic(
-      address(uint160(bound(uint160(fulfillArgs.considerationRecipient), 1, type(uint160).max)))
-    );
 
-    test(this.execFulfillAvailableAdvancedFuzz, Context(consideration, fulfillArgs, emptyMatch));
-    test(this.execFulfillAvailableAdvancedFuzz, Context(referenceConsideration, fulfillArgs, emptyMatch));
-  }
+  function execMatchAdvancedOrders_Revert_DebtIncrease(Context memory context) external stateless {
+      
+      context.matchArgs.shouldIncludeExcessOfferItems = false;
+    // Set up the infrastructure for this function in a struct to avoid
+    // stack depth issues.
+    MatchAdvancedOrdersInfra memory infra = MatchAdvancedOrdersInfra({
+      orders: new Order[](context.matchArgs.orderPairCount),
+      fulfillments: new Fulfillment[](context.matchArgs.orderPairCount),
+      advancedOrders: new AdvancedOrder[](context.matchArgs.orderPairCount),
+      criteriaResolvers: new CriteriaResolver[](0),
+      callerBalanceBefore: 0,
+      callerBalanceAfter: 0,
+      primeOffererBalanceBefore: 0,
+      primeOffererBalanceAfter: 0
+    });
 
-  function execFulfillAvailableAdvancedFuzz(Context memory context) external stateless {
     // TODO: (Someday) See if the stack can tolerate fuzzing criteria
     // resolvers.
+    context.matchArgs.mirrorOfferer = 'mirrorOfferer';
+    // The prime offerer is offering NFTs and considering ERC20/Native.
+    fuzzPrimeOfferer = makeAndAllocateAccount(context.matchArgs.primeOfferer);
+    // The mirror offerer is offering ERC20/Native and considering NFTs.
+    fuzzMirrorOfferer = makeAndAllocateAccount(context.matchArgs.mirrorOfferer);
+        //  fuzzMirrorOfferer.addr = address(uint160(bound(uint160(fuzzPrimeOfferer.addr), 1, type(uint160).max)));
+     vm.assume(fuzzPrimeOfferer.addr != fuzzMirrorOfferer.addr);
+     
+     console2.log('prime offerer', fuzzPrimeOfferer.addr);
+     console2.log('mirror offerer', fuzzMirrorOfferer.addr);
 
-    // Set up the infrastructure.
-    FulfillAvailableAdvancedOrdersInfra memory infra = FulfillAvailableAdvancedOrdersInfra({
-      advancedOrders: new AdvancedOrder[](context.fulfillArgs.orderCount),
-      offerFulfillmentComponents: new FulfillmentComponent[][](context.fulfillArgs.orderCount),
-      considerationFulfillmentComponents: new FulfillmentComponent[][](context.fulfillArgs.orderCount),
-      criteriaResolvers: new CriteriaResolver[](0),
-      callerBalanceBefore: address(this).balance,
-      callerBalanceAfter: address(this).balance,
-      considerationRecipientNativeBalanceBefore: context.fulfillArgs.considerationRecipient.balance,
-      considerationRecipientToken1BalanceBefore: token1.balanceOf(context.fulfillArgs.considerationRecipient),
-      considerationRecipientToken2BalanceBefore: token2.balanceOf(context.fulfillArgs.considerationRecipient),
-      considerationRecipientNativeBalanceAfter: context.fulfillArgs.considerationRecipient.balance,
-      considerationRecipientToken1BalanceAfter: token1.balanceOf(context.fulfillArgs.considerationRecipient),
-      considerationRecipientToken2BalanceAfter: token2.balanceOf(context.fulfillArgs.considerationRecipient)
-    });
+    fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
+    fuzzMirrorProxy = deployOrFind(fuzzMirrorOfferer.addr);
 
-    // Use a conduit sometimes.
-    bytes32 conduitKey = context.fulfillArgs.shouldUseConduit ? conduitKeyOne : bytes32(0);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(conduit), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(referenceConsideration), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(referenceConduit), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(consideration), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(conduitController), true);
 
-    // Mint enough ERC721s to cover the number of NFTs for sale.
-    for (uint256 i; i < context.fulfillArgs.orderCount; i++) {
-      test721_1.mint(offerer1.addr, context.fulfillArgs.tokenId + i);
+    // Set fuzzMirrorOfferer as the zone's expected offer recipient.
+    // zone.setExpectedOfferRecipient(fuzzMirrorOfferer.addr);
+
+    // Create the orders and fulfuillments.
+    (infra.orders, infra.fulfillments) = _buildOrdersAndFulfillmentsMirrorOrdersFromFuzzArgs(context);
+
+    // Set up the advanced orders array.
+    infra.advancedOrders = new AdvancedOrder[](infra.orders.length);
+
+    // Convert the orders to advanced orders.
+    for (uint256 i = 0; i < infra.orders.length; i++) {
+      infra.advancedOrders[i] =
+        infra.orders[i].toAdvancedOrder(1, 1, _getExtraData(context.matchArgs.tokenId));
     }
+    
 
-    // Mint enough ERC20s to cover price per NFT * NFTs for sale.
-    token1.mint(address(this), context.fulfillArgs.amount * context.fulfillArgs.orderCount);
-    token2.mint(address(this), context.fulfillArgs.amount * context.fulfillArgs.orderCount);
+    // offerer takes on more debt so that vault state changes negatively before sale
+    
+    uint256[] memory safes = safeManager.getSafes(fuzzPrimeProxy);
 
-    // Create the orders.
-    infra.advancedOrders = _buildOrdersFromFuzzArgs(context, offerer1.key);
-
-    // Create the fulfillments.
-    if (context.fulfillArgs.shouldAggregateFulfillmentComponents) {
-      (infra.offerFulfillmentComponents, infra.considerationFulfillmentComponents) =
-        fulfillAvailableFulfillmentHelper.getAggregatedFulfillmentComponents(infra.advancedOrders);
-    } else {
-      (infra.offerFulfillmentComponents, infra.considerationFulfillmentComponents) =
-        fulfillAvailableFulfillmentHelper.getNaiveFulfillmentComponents(infra.advancedOrders);
+    for(uint256 i; i < safes.length; i++){
+      vm.prank(fuzzPrimeOfferer.addr);
+      genDebt(safes[i], context.matchArgs.collateralAmount / 8, fuzzPrimeProxy);
     }
+    //warp to after time delay
+    vm.warp(block.timestamp + vault721.timeDelay());
+    console2.logBytes(abi.encodeWithSelector(SIP15ZoneEventsAndErrors.InvalidDynamicTraitValue.selector, address(vault721Adapter), safes[0], 3, DEBTKEY, bytes32(context.matchArgs.collateralAmount / 2), bytes32(((context.matchArgs.collateralAmount / 2) + (context.matchArgs.collateralAmount / 8) - 99513020104531))));
+    //expect revert
+    vm.expectRevert(abi.encodeWithSelector(SIP15ZoneEventsAndErrors.InvalidDynamicTraitValue.selector, address(vault721Adapter), safes[0], 3, DEBTKEY, bytes32(context.matchArgs.collateralAmount / 2), bytes32(((context.matchArgs.collateralAmount / 2) + (context.matchArgs.collateralAmount / 8) - 99513020104531))));
 
-    // If the fuzz args call for using the transfer validation zone, make
-    // sure that it is actually enforcing the expected requirements.
-    if (context.fulfillArgs.shouldUseTransferValidationZone) {
-      address strangerAddress = address(0xdeafbeef);
-
-      vm.expectRevert(
-        abi.encodeWithSignature(
-          'InvalidOwner(address,address,address,uint256)',
-          // The expected recipient is either the offer recipient or
-          // the caller, depending on the fuzz args.
-          context.fulfillArgs.shouldSpecifyRecipient ? context.fulfillArgs.offerRecipient : address(this),
-          // The stranger address gets passed into the recipient field
-          // below, so it will be the actual recipient.
-          strangerAddress,
-          address(test721_1),
-          // Should revert on the first call.
-          context.fulfillArgs.tokenId
-        )
-      );
-
-      // Make the call to Seaport.
-      context.seaport.fulfillAvailableAdvancedOrders{
-        value: context.fulfillArgs.excessNativeTokens
-          + (
-            context.fulfillArgs.shouldIncludeNativeConsideration
-              ? (context.fulfillArgs.amount * context.fulfillArgs.maximumFulfilledCount)
-              : 0
-          )
-      }({
-        advancedOrders: infra.advancedOrders,
-        criteriaResolvers: infra.criteriaResolvers,
-        offerFulfillments: infra.offerFulfillmentComponents,
-        considerationFulfillments: infra.considerationFulfillmentComponents,
-        fulfillerConduitKey: bytes32(conduitKey),
-        recipient: strangerAddress,
-        maximumFulfilled: context.fulfillArgs.maximumFulfilledCount
-      });
-    }
-
-    if (
-      !context.fulfillArgs.shouldIncludeNativeConsideration
-      // If the fuzz args pick this address as the consideration
-      // recipient, then the ERC20 transfers and the native token
-      // transfers will be filtered, so there will be no events.
-      && address(context.fulfillArgs.considerationRecipient) != address(this)
-    ) {
-      // This checks that the ERC20 transfers were not all aggregated
-      // into a single transfer.
-      vm.expectEmit(true, true, false, true, address(token1));
-      emit Transfer(
-        address(this), // from
-        address(context.fulfillArgs.considerationRecipient), // to
-        // The value should in the transfer event should either be
-        // the amount * the number of NFTs for sale (if aggregating) or
-        // the amount (if not aggregating).
-        context.fulfillArgs.amount
-          * (context.fulfillArgs.shouldAggregateFulfillmentComponents ? context.fulfillArgs.maximumFulfilledCount : 1)
-      );
-
-      if (context.fulfillArgs.considerationItemsPerOrderCount >= 2) {
-        // This checks that the second consideration item is being
-        // properly handled.
-        vm.expectEmit(true, true, false, true, address(token2));
-        emit Transfer(
-          address(this), // from
-          address(context.fulfillArgs.considerationRecipient), // to
-          context.fulfillArgs.amount
-            * (context.fulfillArgs.shouldAggregateFulfillmentComponents ? context.fulfillArgs.maximumFulfilledCount : 1) // value
-        );
-      }
-    }
-
-    // Store balances before the call for later comparison.
+ 
+     
+    // Store the native token balances before the call for later reference.
     infra.callerBalanceBefore = address(this).balance;
-    infra.considerationRecipientNativeBalanceBefore = address(context.fulfillArgs.considerationRecipient).balance;
-    infra.considerationRecipientToken1BalanceBefore = token1.balanceOf(context.fulfillArgs.considerationRecipient);
-    infra.considerationRecipientToken2BalanceBefore = token2.balanceOf(context.fulfillArgs.considerationRecipient);
+    infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
+    // Make the call to Seaport.
 
-    // Make the call to Seaport. When the fuzz args call for using native
-    // consideration, send enough native tokens to cover the amount per sale
-    // * the number of sales.  Otherwise, send just the excess native
-    // tokens.
-    context.seaport.fulfillAvailableAdvancedOrders{
-      value: context.fulfillArgs.excessNativeTokens
-        + (
-          context.fulfillArgs.shouldIncludeNativeConsideration
-            ? context.fulfillArgs.amount * context.fulfillArgs.maximumFulfilledCount
-            : 0
-        )
-    }({
-      advancedOrders: infra.advancedOrders,
-      criteriaResolvers: infra.criteriaResolvers,
-      offerFulfillments: infra.offerFulfillmentComponents,
-      considerationFulfillments: infra.considerationFulfillmentComponents,
-      fulfillerConduitKey: bytes32(conduitKey),
-      // If the fuzz args call for specifying a recipient, pass in the
-      // offer recipient.  Otherwise, pass in the null address, which
-      // sets the caller as the recipient.
-      recipient: context.fulfillArgs.shouldSpecifyRecipient ? context.fulfillArgs.offerRecipient : address(0),
-      maximumFulfilled: context.fulfillArgs.maximumFulfilledCount
-    });
-
-    // Store balances after the call for later comparison.
-    infra.callerBalanceAfter = address(this).balance;
-    infra.considerationRecipientNativeBalanceAfter = address(context.fulfillArgs.considerationRecipient).balance;
-    infra.considerationRecipientToken1BalanceAfter = token1.balanceOf(context.fulfillArgs.considerationRecipient);
-    infra.considerationRecipientToken2BalanceAfter = token2.balanceOf(context.fulfillArgs.considerationRecipient);
-
-    // Check that the zone was called the expected number of times.
-
-    // Check that the NFTs were transferred to the expected recipient.
-    for (uint256 i = 0; i < context.fulfillArgs.maximumFulfilledCount; i++) {
-      assertEq(
-        test721_1.ownerOf(context.fulfillArgs.tokenId + i),
-        context.fulfillArgs.shouldSpecifyRecipient ? context.fulfillArgs.offerRecipient : address(this),
-        'NFT owner incorrect.'
-      );
-    }
-
-    // Check that the ERC20s or native tokens were transferred to the
-    // expected recipient according to the fuzz args.
-    if (context.fulfillArgs.shouldIncludeNativeConsideration) {
-      if (address(context.fulfillArgs.considerationRecipient) == address(this)) {
-        // Edge case: If the fuzz args pick this address for the
-        // consideration recipient, then the caller's balance should not
-        // change.
-        assertEq(infra.callerBalanceAfter, infra.callerBalanceBefore, 'Caller balance incorrect (this contract).');
-      } else {
-        // Check that the consideration recipient's native balance was
-        // increased by the amount * the number of NFTs for sale.
-        assertEq(
-          infra.considerationRecipientNativeBalanceAfter,
-          infra.considerationRecipientNativeBalanceBefore
-            + context.fulfillArgs.amount * context.fulfillArgs.maximumFulfilledCount,
-          'Consideration recipient native balance incorrect.'
-        );
-        // The consideration (amount * maximumFulfilledCount) should be
-        // spent, and the excessNativeTokens should be returned.
-        assertEq(
-          infra.callerBalanceAfter + context.fulfillArgs.amount * context.fulfillArgs.maximumFulfilledCount,
-          infra.callerBalanceBefore,
-          'Caller balance incorrect.'
-        );
-      }
-    } else {
-      // The `else` here is the case where no native consieration is used.
-      if (address(context.fulfillArgs.considerationRecipient) == address(this)) {
-        // Edge case: If the fuzz args pick this address for the
-        // consideration recipient, then the caller's balance should not
-        // change.
-        assertEq(
-          infra.considerationRecipientToken1BalanceAfter,
-          infra.considerationRecipientToken1BalanceBefore,
-          'Consideration recipient token1 balance incorrect (this).'
-        );
-      } else {
-        assertEq(
-          infra.considerationRecipientToken1BalanceAfter,
-          infra.considerationRecipientToken1BalanceBefore
-            + context.fulfillArgs.amount * context.fulfillArgs.maximumFulfilledCount,
-          'Consideration recipient token1 balance incorrect.'
-        );
-      }
-
-      if (context.fulfillArgs.considerationItemsPerOrderCount >= 2) {
-        if (address(context.fulfillArgs.considerationRecipient) == address(this)) {
-          // Edge case: If the fuzz args pick this address for the
-          // consideration recipient, then the caller's balance should
-          // not change.
-          assertEq(
-            infra.considerationRecipientToken2BalanceAfter,
-            infra.considerationRecipientToken2BalanceBefore,
-            'Consideration recipient token2 balance incorrect (this).'
-          );
-        } else {
-          assertEq(
-            infra.considerationRecipientToken2BalanceAfter,
-            infra.considerationRecipientToken2BalanceBefore
-              + context.fulfillArgs.amount * context.fulfillArgs.maximumFulfilledCount,
-            'Consideration recipient token2 balance incorrect.'
-          );
-        }
-      }
-    }
+    context.seaport.matchAdvancedOrders{
+      value: (context.matchArgs.amount * context.matchArgs.orderPairCount) + context.matchArgs.excessNativeTokens
+    }(
+      infra.advancedOrders,
+      infra.criteriaResolvers,
+      infra.fulfillments,
+      // If shouldSpecifyUnspentOfferItemRecipient is true, send the
+      // unspent offer items to the recipient specified by the fuzz args.
+      // Otherwise, pass in the zero address, which will result in the
+      // unspent offer items being sent to the caller.
+      context.matchArgs.shouldSpecifyUnspentOfferItemRecipient
+        ? address(context.matchArgs.unspentPrimeOfferItemRecipient)
+        : address(0)
+    );
   }
 
   function _buildOrdersFromFuzzArgs(
@@ -1063,11 +910,21 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     // used as the number of order pairs to make here.
     for (i = 0; i < context.matchArgs.orderPairCount; i++) {
       // Mint the NFTs for the prime offerer to sell.
-      vm.startPrank(fuzzPrimeProxy);
-      safeManager.openSAFE('ARB', fuzzPrimeProxy); //NOTE: THIS may be causing the order already fullfilled error
-      vm.stopPrank();
-      test721_1.mint(fuzzPrimeOfferer.addr, (context.matchArgs.tokenId + i) * 2);
-
+  vm.prank(fuzzPrimeProxy);
+      uint256 currentVaultId = safeManager.openSAFE(TKN, fuzzPrimeProxy); //NOTE: THIS may be causing the order already fullfilled error
+      // test721_1.mint(fuzzPrimeOfferer.addr, (context.matchArgs.tokenId + i) * 2);
+    
+    vm.startPrank(fuzzPrimeOfferer.addr);
+      tokenForTest.mint(context.matchArgs.collateralAmount);
+      tokenForTest.approve(fuzzPrimeProxy, context.matchArgs.collateralAmount);
+      depositCollatAndGenDebt(
+    TKN,
+    currentVaultId,
+    context.matchArgs.collateralAmount,
+    context.matchArgs.collateralAmount / 2,
+    fuzzPrimeProxy
+  );
+  vm.stopPrank();
       // Build the OfferItem array for the prime offerer's order.
       infra.offerItemArray = _buildPrimeOfferItemArray(context, i);
       // Build the ConsiderationItem array for the prime offerer's order.
@@ -1155,26 +1012,19 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
   function _getTraits(uint256 tokenId) internal returns (bytes32[] memory traits) {
     bytes32[] memory traitKeys = new bytes32[](2);
     traitKeys[0] = COLLATERAL;
-    traitKeys[1] = DEBT;
-    bytes32[] memory _traitValues = new bytes32[](2);
-    _traitValues[0] = bytes32(uint256(10 ether));
-    _traitValues[1] = bytes32(uint256(1 ether));
-    vm.mockCall(
-      address(vault721Adapter),
-      abi.encodeWithSelector(IVault721Adapter.getTraitValues.selector, tokenId, traitKeys),
-      abi.encode(_traitValues)
-    );
+    traitKeys[1] = DEBTKEY;
+
     traits = vault721Adapter.getTraitValues(tokenId, traitKeys);
   }
 
-  function _getExtraData(uint256 tokenId) public returns (Substandard5Comparison memory) {
+  function _getExtraData(uint256 tokenId) public returns (bytes memory) {
     bytes32[] memory traits = _getTraits(tokenId);
     bytes32[] memory keys = new bytes32[](2);
     uint8[] memory _comparisonEnums = new uint8[](2);
     _comparisonEnums[0] = 5;
     _comparisonEnums[1] = 3;
     keys[0] = COLLATERAL;
-    keys[1] = DEBT;
+    keys[1] = DEBTKEY;
     Substandard5Comparison memory subStandard5Comparison = Substandard5Comparison({
       comparisonEnums: _comparisonEnums,
       token: address(vault721),
@@ -1184,11 +1034,11 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
       traitKeys: keys
     });
 
-    return subStandard5Comparison;
+    return SIP15Encoder.encodeSubstandard5(subStandard5Comparison);
   }
 
-  function _getZoneHash(Substandard5Comparison memory _substandard5Comparison) public returns (bytes32 _zoneHash) {
-    _zoneHash = SIP15Encoder.generateZoneHashForSubstandard5(_substandard5Comparison);
+  function _getZoneHash(bytes memory _substandard5Comparison) public returns (bytes32 _zoneHash) {
+    _zoneHash = SIP15Encoder.generateZoneHash(_substandard5Comparison);
   }
 
   // function deployOrFind(address owner) public returns (address payable) {

@@ -93,22 +93,13 @@ library SIP15Encoder {
   }
 
   /**
-   * @notice Generate a zone hash for an SIP15 contract that implements substandard 3, which
-   *         derives its zoneHash from a single comparison enum, token address, token id, trait value and trait key
-   * @param comparisonEnum the comparison enum 0 - 5
-   * @param token the address of the collection
-   * @param identifier the tokenId of the token to be checked
-   * @param traitKey the bytes32 encoded trait key for checking a trait on an ERC7496 token
-   * @param traitValue the expected value of the trait.
+   * @notice Generate a zone hash for an SIP15 contract, 
+   * @param encodedData the SIP15 encoded extra data
    */
   function generateZoneHash(
-    uint8 comparisonEnum,
-    address token,
-    uint256 identifier,
-    bytes32 traitValue,
-    bytes32 traitKey
+    bytes memory encodedData
   ) internal pure returns (bytes32) {
-    return keccak256(abi.encodePacked(abi.encode(comparisonEnum, token, identifier, traitValue, traitKey)));
+    return keccak256(abi.encodePacked(encodedData));
   }
 
   /**

@@ -6,6 +6,7 @@ import {DeployForTest, ODTest, COLLAT, DEBT, TKN} from '@opendollar/test/e2e/Com
 import {ERC20ForTest} from '@opendollar/test/mocks/ERC20ForTest.sol';
 import {ISAFEEngine} from '@opendollar/interfaces/ISAFEEngine.sol';
 import {BaseOrderTest} from 'seaport/test/foundry/utils/BaseOrderTest.sol';
+import {ODProxy} from '@opendollar/contracts/proxies/ODProxy.sol';
 import {
   IBaseOracle
 } from '@opendollar/interfaces/oracles/IBaseOracle.sol';
@@ -18,7 +19,7 @@ contract SetUp is DeployForTest, ODTest, BaseOrderTest {
   address public aliceProxy;
   address public bobProxy;
 
-  ERC20ForTest public token;
+  ERC20ForTest public tokenForTest;
 
     function setUp() public virtual override {
         super.setUp();
@@ -40,8 +41,8 @@ contract SetUp is DeployForTest, ODTest, BaseOrderTest {
     vm.label(aliceProxy, 'AliceProxy');
     vm.label(bobProxy, 'BobProxy');
 
-    token = ERC20ForTest(address(collateral[TKN]));
-    token.mint(alice, MINT_AMOUNT);
+    tokenForTest = ERC20ForTest(address(collateral[TKN]));
+    tokenForTest.mint(MINT_AMOUNT);
 
     ISAFEEngine.SAFEEngineParams memory params = safeEngine.params();
     debtCeiling = params.safeDebtCeiling;
@@ -68,6 +69,32 @@ function _setCollateralPrice(bytes32 _collateral, uint256 _price) internal {
   function _collectFees(bytes32 _cType, uint256 _timeToWarp) internal {
     vm.warp(block.timestamp + _timeToWarp);
     taxCollector.taxSingle(_cType);
+  }
+
+  function depositCollatAndGenDebt(
+    bytes32 _cType,
+    uint256 _safeId,
+    uint256 _collatAmount,
+    uint256 _deltaWad,
+    address _proxy
+  ) public {
+    bytes memory payload = abi.encodeWithSelector(
+      basicActions.lockTokenCollateralAndGenerateDebt.selector,
+      address(safeManager),
+      address(collateralJoin[_cType]),
+      address(coinJoin),
+      _safeId,
+      _collatAmount,
+      _deltaWad
+    );
+    ODProxy(_proxy).execute(address(basicActions), payload);
+  }
+
+    function genDebt(uint256 _safeId, uint256 _deltaWad, address _proxy) public {
+    bytes memory payload = abi.encodeWithSelector(
+      basicActions.generateDebt.selector, address(safeManager), address(coinJoin), _safeId, _deltaWad
+    );
+    ODProxy(_proxy).execute(address(basicActions), payload);
   }
 
 }
