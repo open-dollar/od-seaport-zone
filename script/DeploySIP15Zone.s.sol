@@ -15,10 +15,10 @@ import {MainnetContracts} from '@opendollar/script/MainnetContracts.s.sol';
 // cast wallet import defaultKey --interactive
 
 // and then:
-// source .env && forge script script/DeploySIP15Zone.sol:DeploySIP15ZoneWithCastWallet --with-gas-price 2000000000 -vvvvv --rpc-url $ARB_SEPOLIA_RPC --broadcast --verify --etherscan-api-key $ARB_ETHERSCAN_API_KEY --acount defaultKey --sender DEFAULT_KEY_PUBLIC_ADDRESS
+// source .env && forge script script/DeploySIP15Zone.s.sol:DeploySIP15ZoneWithCastWallet --with-gas-price 2000000000 -vvvvv --rpc-url $ARB_SEPOLIA_RPC --broadcast --verify --etherscan-api-key $ARB_ETHERSCAN_API_KEY --account defaultKey --sender $DEFAULT_KEY_PUBLIC_ADDRESS
 
-// to use .env
-// source .env && forge script script/DeploySIP15Zone.sol:DeploySIP15ZoneWithENV --with-gas-price 2000000000 -vvvvv --rpc-url $ARB_SEPOLIA_RPC --broadcast --verify --etherscan-api-key $ARB_ETHERSCAN_API_KEY
+// to use .env:
+// source .env && forge script script/DeploySIP15Zone.s.sol:DeploySIP15ZoneWithENV --with-gas-price 2000000000 -vvvvv --rpc-url $ARB_SEPOLIA_RPC --broadcast --verify --etherscan-api-key $ARB_ETHERSCAN_API_KEY
 
 contract DeploySIP15ZoneWithENV is Script {
   uint256 internal _privateKey;
