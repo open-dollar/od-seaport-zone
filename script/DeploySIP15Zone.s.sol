@@ -61,7 +61,6 @@ contract DeploySIP15ZoneWithENV is Script {
   }
 }
 
-
 contract DeploySIP15ZoneWithCastWallet is Script {
   uint256 internal _privateKey;
   address public deployer;
@@ -93,4 +92,3 @@ contract DeploySIP15ZoneWithCastWallet is Script {
     new SIP15Zone();
   }
 }
-
