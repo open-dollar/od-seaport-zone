@@ -42,7 +42,7 @@ contract DeploySIP15ZoneWithENV is Script {
     if (block.chainid == 421_614) {
       _privateKey = vm.envUint('ARB_SEPOLIA_PK');
       deployer = vm.addr(_privateKey);
-      vault721 = vm.envAddress('VAULT712_SEPOLIA_ADDRESS'); // SepoliaContracts.Vault721_Address;
+      vault721 = vm.envAddress('VAULT721_SEPOLIA_ADDRESS'); // SepoliaContracts.Vault721_Address;
     } else if (block.chainid == 42_161) {
       _privateKey = vm.envUint('ARB_MAINNET_PK');
       deployer = vm.addr(_privateKey);
@@ -80,7 +80,7 @@ contract DeploySIP15ZoneWithCastWallet is Script {
 
   function _loadAddresseses() internal {
     if (block.chainid == 421_614) {
-      vault721 = vm.envAddress('VAULT712_SEPOLIA_ADDRESS'); // SepoliaContracts.Vault721_Address;
+      vault721 = vm.envAddress('VAULT721_SEPOLIA_ADDRESS'); // SepoliaContracts.Vault721_Address;
     } else if (block.chainid == 42_161) {
       vault721 = vm.envAddress('VAULT712_MAINNET_ADDRESS'); // MainnetContracts.Vault721_Address;
     } else {
