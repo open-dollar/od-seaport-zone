@@ -42,11 +42,11 @@ contract DeploySIP15ZoneWithENV is Script {
     if (block.chainid == 421_614) {
       _privateKey = vm.envUint('ARB_SEPOLIA_PK');
       deployer = vm.addr(_privateKey);
-      vault721 = address(0x05AC7e3ac152012B980407dEff2655c209667E4c); // SepoliaContracts.Vault721_Address;
+      vault721 = vm.envAddress('VAULT712_SEPOLIA_ADDRESS'); // SepoliaContracts.Vault721_Address;
     } else if (block.chainid == 42_161) {
       _privateKey = vm.envUint('ARB_MAINNET_PK');
       deployer = vm.addr(_privateKey);
-      vault721 = address(0x0005AFE00fF7E7FF83667bFe4F2996720BAf0B36); // MainnetContracts.Vault721_Address;
+      vault721 = vm.envAddress('VAULT712_MAINNET_ADDRESS'); // MainnetContracts.Vault721_Address;
     } else {
       revert UnrecognizedChainId();
     }
@@ -80,12 +80,13 @@ contract DeploySIP15ZoneWithCastWallet is Script {
 
   function _loadAddresseses() internal {
     if (block.chainid == 421_614) {
-      vault721 = address(0x05AC7e3ac152012B980407dEff2655c209667E4c); // SepoliaContracts.Vault721_Address;
+      vault721 = vm.envAddress('VAULT712_SEPOLIA_ADDRESS'); // SepoliaContracts.Vault721_Address;
     } else if (block.chainid == 42_161) {
-      vault721 = address(0x0005AFE00fF7E7FF83667bFe4F2996720BAf0B36); // MainnetContracts.Vault721_Address;
+      vault721 = vm.envAddress('VAULT712_MAINNET_ADDRESS'); // MainnetContracts.Vault721_Address;
     } else {
       revert UnrecognizedChainId();
     }
+
   }
 
   function _deploy() internal {

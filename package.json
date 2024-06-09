@@ -20,8 +20,9 @@
     "MrDeadce11 (https://github.com/MrDeadCe11)"
   ],
   "scripts": {
-    "build": "forge build",
+    "build": "tsc && forge build",
     "coverage": "forge coverage",
+    "createListing": "ts-node script/createListing.ts",
     "lint:check": "yarn lint:sol && forge fmt --check",
     "lint:fix": "sort-package-json && forge fmt && yarn lint:sol --fix",
     "lint:sol": "cross-env solhint 'src/**/*.sol' 'test/**/*.sol'",
@@ -30,7 +31,12 @@
   },
   "dependencies": {
     "@opendollar/contracts": "^0.0.0-c2beba2",
-    "@openzeppelin/contracts": "^4.9.6"
+    "@openzeppelin/contracts": "^4.9.6",
+    "@types/node": "^20.11.5",
+    "ethers": "^6.10.0",
+    "opensea-js": "^7.0.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
