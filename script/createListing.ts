@@ -8,13 +8,13 @@ import {
     ARB_SEPOLIA_RPC,
     WALLET_PRIV_KEY
 } from './utils/constants';
-import {Abi, narrow} from 'abitype';
 const vault721AdapterABI = require('../out/Vault721Adapter.sol/Vault721Adapter.json');
 const sip15ZoneABI = require('../out/SIP15Zone.sol/SIP15Zone.json');
 import { ItemType } from "@opensea/seaport-js/src/constants";
 import { CreateOrderInput } from '@opensea/seaport-js/lib/types';
 import { Seaport } from "@opensea/seaport-js";
 import { Wallet, Provider } from 'ethers';
+import {Vault721Adapter} from '../types/ethers-contracts/index';
 
 const createSIP15ZoneListing = async (chain: string) => {
     let provider: Provider;
@@ -40,9 +40,9 @@ const createSIP15ZoneListing = async (chain: string) => {
 
     // TODO: Fill in the token address and token ID of the NFT you want to sell, as well as the price
     let considerationTokenAddress: string = "";
-    let vaultId: string = "";
-    let listingAmount: string = "";
-    const vault721Adapter = new ethers.Contract(VAULT721_SEPOLIA_ADAPATER_ADDRESS!, vault721AdapterABI.abi);
+    let vaultId: string = "1";
+    let listingAmount: string = ethers.parseEther('1').toString();
+    const vault721Adapter = new ethers.Contract(VAULT721_SEPOLIA_ADAPATER_ADDRESS!, vault721AdapterABI.abi, wallet) as unknown as Vault721Adapter;
     const sip15Zone = new ethers.Contract(SIP15_ZONE_SEPOLIA_ADDRESS!, sip15ZoneABI.abi);
 
     /**
@@ -59,8 +59,8 @@ const createSIP15ZoneListing = async (chain: string) => {
         'Substandard5Comparison(uint8[] comparisonEnums,address token,address traits,uint256 identifier,bytes32[] traitValues,bytes32[] traitKeys)'
 
     const _comparisonEnums: number[] = [4, 5];
-    const _traitKeys: BytesLike[] = [ethers.keccak256('DEBT'), ethers.keccak256('COLLATERAL')];
-    const _traitValues: BytesLike[] = await vault721Adapter.getTraits(vaultId, _traitKeys);
+    const _traitKeys: BytesLike[] = [ethers.keccak256(ethers.toUtf8Bytes('DEBT')), ethers.keccak256(ethers.toUtf8Bytes('COLLATERAL'))];
+    const _traitValues: BytesLike[] = await vault721Adapter.getTraitValues(ethers.toBigInt(vaultId), _traitKeys);
     
     const substandard5data = {
         comparisonEnums: _comparisonEnums,

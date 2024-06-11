@@ -12,15 +12,13 @@
   "author": "OpenFi Foundation",
   "contributors": [
     "cupOJoseph",
-    "BCLeFevre",
-    "stuckinaboot",
     "stephankmin",
     "pi0neerpat (https://github.com/pi0neerpat)",
     "daopunk (https://github.com/daopunk)",
     "MrDeadce11 (https://github.com/MrDeadCe11)"
   ],
   "scripts": {
-    "build": "tsc && forge build",
+    "build": "forge build",
     "coverage": "forge coverage",
     "createListing": "tsx script/createListing.ts",
     "lint:check": "yarn lint:sol && forge fmt --check",
@@ -32,18 +30,17 @@
   "dependencies": {
     "@opendollar/contracts": "^0.0.0-c2beba2",
     "@openzeppelin/contracts": "^4.9.6",
-    "@types/node": "^20.11.5",
-    "abitype": "^1.0.2",
     "dotenv": "^16.4.5",
-    "ethers": "^6.10.0",
-    "opensea-js": "^7.0.7",
-    "typescript": "^5.3.3"
+    "ethers": "^6.13.0",
+    "opensea-js": "^7.1.9",
+    "tsx": "^4.15.2"
   },
   "devDependencies": {
+    "@typechain/ethers-v6": "^0.5.1",
     "cross-env": "^7.0.3",
     "solhint": "^4.5.2",
     "solhint-plugin-defi-wonderland": "^1.1.3",
     "sort-package-json": "^2.8.0",
-    "tsx": "^4.15.2"
+    "typechain": "^8.3.2"
   }
 }
