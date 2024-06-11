@@ -8,6 +8,7 @@ import {Vault721Adapter} from '../src/contracts/Vault721Adapter.sol';
 import {IVault721} from '@opendollar/interfaces/proxies/IVault721.sol';
 import {SepoliaContracts} from '@opendollar/script/SepoliaContracts.s.sol';
 import {MainnetContracts} from '@opendollar/script/MainnetContracts.s.sol';
+import {EncodeSubstandard5ForEthers} from './utils/EncodeSubstandard5ForEthers.sol';
 
 // sepolia deployment
 // to use cast wallet:
@@ -33,9 +34,11 @@ contract DeploySIP15ZoneWithENV is Script {
     vm.startBroadcast(_privateKey);
     address zoneAddress = address(new SIP15Zone());
     address vault721Adapter = address(new Vault721Adapter(IVault721(vault721)));
+    address encodingHelper = address(new EncodeSubstandard5ForEthers());
     vm.stopBroadcast();
     console2.log('Zone Deployed at: ', zoneAddress);
     console2.log('vault721Adapter Deployed at: ', vault721Adapter);
+    console.log('encodingHelper deployed at: ', encodingHelper);
   }
 
   function _loadPrivateKeys() internal {
@@ -70,9 +73,11 @@ contract DeploySIP15ZoneWithCastWallet is Script {
     vm.startBroadcast();
     address zoneAddress = address(new SIP15Zone());
     address vault721Adapter = address(new Vault721Adapter(IVault721(vault721)));
+    address encodingHelper = address(new EncodeSubstandard5ForEthers());
     vm.stopBroadcast();
     console2.log('Zone Deployed at: ', zoneAddress);
     console2.log('vault721Adapter Deployed at: ', vault721Adapter);
+    console.log('encodingHelper deployed at: ', encodingHelper);
   }
 
   function _loadAddresseses() internal {
@@ -92,6 +97,7 @@ contract DeployAnvil is Script{
     uint256 internal _privateKey;
   address public deployer;
   address public vault721;
+  
 
   function run() public {
     _loadPrivateKeys();
@@ -99,9 +105,11 @@ contract DeployAnvil is Script{
     vm.startBroadcast(_privateKey);
     address zoneAddress = address(new SIP15Zone());
     address vault721Adapter = address(new Vault721Adapter(IVault721(vault721)));
+    address encodingHelper = address(new EncodeSubstandard5ForEthers());
     vm.stopBroadcast();
     console2.log('Zone Deployed at: ', zoneAddress);
     console2.log('vault721Adapter Deployed at: ', vault721Adapter);
+    console.log('encodingHelper deployed at: ', encodingHelper);
   }
 
   function _loadPrivateKeys() internal {
@@ -109,7 +117,7 @@ contract DeployAnvil is Script{
       _privateKey = vm.envUint('ANVIL_ONE');
       deployer = vm.addr(_privateKey);
       vault721 = vm.envAddress('VAULT721_SEPOLIA_ADDRESS'); // SepoliaContracts.Vault721_Address;
- 
+
     console2.log('\n');
     console2.log('deployer address:', deployer);
     console2.log('deployer balance:', deployer.balance);

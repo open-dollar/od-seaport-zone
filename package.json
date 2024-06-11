@@ -18,14 +18,15 @@
     "MrDeadce11 (https://github.com/MrDeadCe11)"
   ],
   "scripts": {
-    "build": "forge build",
+    "build": "forge build ; generate-types",
     "coverage": "forge coverage",
     "createListing": "tsx script/createListing.ts",
     "lint:check": "yarn lint:sol && forge fmt --check",
     "lint:fix": "sort-package-json && forge fmt && yarn lint:sol --fix",
     "lint:sol": "cross-env solhint 'src/**/*.sol' 'test/**/*.sol'",
     "test": "FOUNDRY_FUZZ_RUNS=128 FOUNDRY_FUZZ_MAX_TEST_REJECTS=1000000 forge test -vvv --ffi ",
-    "test:coverage": "forge coverage --report lcov && lcov --ignore-errors unused --remove lcov.info 'node_modules/*' 'script/*' 'test/*' 'src/contracts/for-test/*' 'src/libraries/*' -o lcov.info.pruned && mv lcov.info.pruned lcov.info && genhtml -o coverage-report lcov.info"
+    "test:coverage": "forge coverage --report lcov && lcov --ignore-errors unused --remove lcov.info 'node_modules/*' 'script/*' 'test/*' 'src/contracts/for-test/*' 'src/libraries/*' -o lcov.info.pruned && mv lcov.info.pruned lcov.info && genhtml -o coverage-report lcov.info",
+    "generate-types": "npx typechain --target ethers-v6 'out/SepoliaContracts.s.sol/SepoliaContracts.json' 'out/Vault721Adapter.sol/Vault721Adapter.json' 'out/EncodeSubstandard5ForEthers.sol/EncodeSubstandard5ForEthers.json' --show-stack-traces"
   },
   "dependencies": {
     "@opendollar/contracts": "^0.0.0-c2beba2",

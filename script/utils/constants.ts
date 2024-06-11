@@ -1,25 +1,108 @@
-import { JsonRpcProvider, ethers } from "ethers";
 require('dotenv').config();
 
-export const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
-export const WALLET_PRIV_KEY = process.env.ARB_SEPOLIA_PK;
-export const ARB_SEPOLIA_RPC = process.env.ARB_SEPOLIA_RPC;
-export const SIP15_ZONE_SEPOLIA_ADDRESS = process.env.SIP15_ZONE_SEPOLIA_ADDRESS;
-export const SIP15_ZONE_ANVIL_ADDRESS = process.env.SIP15_ZONE_ANVIL_ADDRESS;
-export const VAULT721_SEPOLIA_ADAPATER_ADDRESS = process.env.VAULT721_SEPOLIA_ADAPATER_ADDRESS;
-export const VAULT721_ANVIL_ADAPATER_ADDRESS = process.env.VAULT721_ANVIL_ADAPATER_ADDRESS;
-export const VAULT721_SEPOLIA_ADDRESS = process.env.VAULT721_SEPOLIA_ADDRESS;
-export const VAULT721_ANVIL_ADDRESS = process.env.VAULT721_ANVIL_ADDRESS;
-export const ANVIL_ONE = process.env.ANVIL_ONE;
-export const ANVIL_RPC = process.env.ANVIL_RPC;
-export const ENCODING_HELPER = process.env.ENCODING_HELPER;
-export const ENCODING_HELPER_ANVIL = process.env.ENCODING_HELPER_ANVIL;
-export const sepoliaProvider = new JsonRpcProvider(ARB_SEPOLIA_RPC);
+import fs from "fs";
+import path from "path";
 
-export const sepoliaWallet = new ethers.Wallet(
-    WALLET_PRIV_KEY as string,
-    sepoliaProvider
-);
 
-export const SEPOLIA_WALLET_ADDRESS = sepoliaWallet.address;
+const baseSepoliaPath = path.join('node_modules/@opendollar/contracts/script/SepoliaContracts.s.sol');
+const baseMainnetPath = path.join('node_modules/@opendollar/contracts/script/MainnetContracts.s.sol');
+const baseAnvilDeploymentsPath = path.join('broadcast/DeploySIP15Zone.s.sol/31337/run-latest.json');
+const baseSepoliaDeploymentsPath = path.join('broadcast/DeploySIP15Zone.s.sol/421614/run-latest.json');
 
+/** @note uncomment next line when mainnet deployment is done */
+// const baseMainnetDeploymentsPath = path.join('broadcast/DeploySIP15Zone.s.sol/42161/run-latest.json');
+
+/** @note delete this next line when mainnet deployment is done */
+const baseMainnetDeploymentsPath = path.join('broadcast/DeploySIP15Zone.s.sol/31337/run-latest.json');
+/** @note do the things said above */
+
+const sepoliaContractsString: string = fs.readFileSync(baseSepoliaPath, 'utf-8');
+const mainnetContractsString: string = fs.readFileSync(baseMainnetPath, 'utf-8');
+const anvilDeployments = JSON.parse(fs.readFileSync(baseAnvilDeploymentsPath, 'utf-8'));
+const sepoliaDeployments = JSON.parse(fs.readFileSync(baseSepoliaDeploymentsPath, 'utf-8'));
+const mainnetDeployments = JSON.parse(fs.readFileSync(baseMainnetDeploymentsPath, 'utf-8'));
+
+const sepoliaContracts = stringToObject(sepoliaContractsString);
+const mainnetContracts = stringToObject(mainnetContractsString);
+
+
+type ParsedObjectType = {
+    [key: string]: string;
+}
+
+function stringToObject(str: string): ParsedObjectType{
+    const parts = str.split(';');
+    const trimmedObject: ParsedObjectType = {};
+    parts.filter((element, i ) => {
+        return element.includes('=');
+    }).forEach((e,i) => {
+        const searchString = 'address public';
+        const thing = e.indexOf(searchString);
+        const [key, value] = e.trim().slice(thing + 12).split('=');
+        const trimmedKey = key.trim().replace(/^address\s+/, '');
+        const trimmedValue = value.trim().replace(/;$/, '');
+        trimmedObject[trimmedKey] = trimmedValue;
+    });
+    return trimmedObject;
+  }
+
+
+  export const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
+  export const WALLET_PRIV_KEY = process.env.ARB_SEPOLIA_PK;
+  export const ARB_SEPOLIA_RPC = process.env.ARB_SEPOLIA_RPC;
+  export const ARB_MAINNET_RPC = process.env.ARB_MAINNET_RPC;
+  export const ANVIL_ONE = process.env.ANVIL_ONE;
+  export const ANVIL_RPC = process.env.ANVIL_RPC;
+
+  export const SIP15_ZONE_MAINNET_ADDRESS = checkMainnetAddress(mainnetDeployments, 0);
+  export const SIP15_ZONE_SEPOLIA_ADDRESS = checkSepoliaAddress(sepoliaDeployments, 0);
+  export const SIP15_ZONE_ANVIL_ADDRESS = anvilDeployments.receipts[0].contractAddress;
+  export const VAULT721_SEPOLIA_ADAPTER_ADDRESS = checkSepoliaAddress(sepoliaDeployments, 1);
+  export const VAULT721_ANVIL_ADAPTER_ADDRESS = anvilDeployments.receipts[1].contractAddress;
+  export const VAULT721_MAINNET_ADAPTER_ADDRESS =checkMainnetAddress(mainnetDeployments, 1);
+  export const VAULT721_SEPOLIA_ADDRESS = sepoliaContracts.Vault721_Address;
+  export const VAULT721_MAINNET_ADDRESS = mainnetContracts.Vault721_Address;
+  export const VAULT721_ANVIL_ADDRESS = process.env.VAULT721_ANVIL_ADDRESS;
+
+  export const ENCODING_HELPER_MAINNET = checkMainnetAddress(mainnetDeployments,2);
+  export const ENCODING_HELPER_SEPOLIA = checkSepoliaAddress(sepoliaDeployments, 2);
+  export const ENCODING_HELPER_ANVIL = anvilDeployments.receipts[2].contractAddress;
+  
+  function checkMainnetAddress(deployment: any, index: number): string | unknown{
+    const result = ((): string | unknown => {
+        try {
+           return deployment.receipts[index].contractAddress
+        } catch(error){
+            if(index == 0 && process.env.SIP15_ZONE_MAINNET_ADDRESS){
+                return process.env.SIP15_ZONE_MAINNET_ADDRESS;
+            } else if (index == 1 && process.env.VAULT721_MAINNET_ADAPTER_ADDRESS){
+                return process.env.VAULT721_MAINNET_ADAPTER_ADDRESS;
+            } else if (index == 2 && process.env.ENCODING_HELPER_MAINNET){
+                return process.env.ENCODING_HELPER_MAINNET;
+            } else {
+            console.error(error);
+            }
+        }
+    })();
+        return result;
+  }
+
+  function checkSepoliaAddress(deployment: any, index: number): string | unknown{
+    return(() => {
+        try {
+            return deployment.receipts[index].contractAddress
+        } catch(error){
+            console.log(process.env.SIP15_ZONE_SEPOLIA_ADDRESS, process.env.VAULT721_SEPOLIA_ADAPTER_ADDRESS, process.env.ENCODING_HELPER_SEPOLIA)
+            if(index == 0 && process.env.SIP15_ZONE_SEPOLIA_ADDRESS){
+                return process.env.SIP15_ZONE_SEPOLIA_ADDRESS;
+            } else if (index == 1 && process.env.VAULT721_SEPOLIA_ADAPTER_ADDRESS){
+                return process.env.VAULT721_SEPOLIA_ADAPTER_ADDRESS;
+            } else if (index == 2 && process.env.ENCODING_HELPER_SEPOLIA){
+                return process.env.ENCODING_HELPER_SEPOLIA;
+            } else {
+                console.error(error);
+                throw new Error('addresses cannot be gotten');
+            }
+        }
+    })();
+  }
