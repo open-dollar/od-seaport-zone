@@ -36,6 +36,7 @@ const createSIP15ZoneListing = async (chain: string) => {
     provider = new ethers.JsonRpcProvider(ANVIL_RPC);
     wallet = new ethers.Wallet(ANVIL_ONE as string, provider);
     seaport = new Seaport(wallet);
+
     if (VAULT721_ANVIL_ADAPATER_ADDRESS && VAULT721_ANVIL_ADDRESS) {
       vault721AdapterAddress = VAULT721_ANVIL_ADAPATER_ADDRESS;
       vault721Address = VAULT721_ANVIL_ADDRESS;
@@ -43,14 +44,16 @@ const createSIP15ZoneListing = async (chain: string) => {
       throw new Error("VAULT721_ANVIL_ADAPATER_ADDRESS undefined");
     }
 
-    if (ENCODING_HELPER_ANVIL == undefined) {
+    if (!ENCODING_HELPER_ANVIL) {
       const encodeSubstandard5Factory = new ethers.ContractFactory(
         EncodeSubstandard5ForEthersABI.abi,
         EncodeSubstandard5ForEthersABI.bytecode,
         wallet
       );
+
       encodeSubstandard5Helper =
         (await encodeSubstandard5Factory.deploy()) as EncodeSubstandard5ForEthers;
+
     } else {
       encodeSubstandard5Helper = new ethers.Contract(
         ENCODING_HELPER_ANVIL,
@@ -89,7 +92,6 @@ const createSIP15ZoneListing = async (chain: string) => {
   } else {
     throw new Error("unsupported chain");
   }
-
   // TODO: Fill in the token address and token ID of the NFT you want to sell, as well as the price
   let considerationTokenAddress: string = "";
   let vaultId: string = "1";
@@ -98,7 +100,7 @@ const createSIP15ZoneListing = async (chain: string) => {
     vault721AdapterAddress,
     vault721AdapterABI.abi,
     wallet
-  ) as unknown as Vault721Adapter;
+  );
 
   /**
      * struct Substandard5Comparison {
@@ -127,26 +129,19 @@ const createSIP15ZoneListing = async (chain: string) => {
       ],
     },
   ];
-  const _comparisonEnums: BigNumberish[] = new Uint8Array([4, 5]) as unknown as BigNumberish[];
+ 
+  const _comparisonEnums: BigNumberish[] = [4, 5] as BigNumberish[];
   const _traitKeys: BytesLike[] = [
     ethers.keccak256(ethers.toUtf8Bytes("DEBT")),
     ethers.keccak256(ethers.toUtf8Bytes("COLLATERAL")),
   ];
+
   const _traitValues: BytesLike[] = await vault721Adapter.getTraitValues(
     ethers.toBigInt(vaultId),
     _traitKeys
-  );
-  console.log(_traitValues);
-  const substandard5data: any = [
-    {
-      comparisonEnums: _comparisonEnums,
-      token: VAULT721_SEPOLIA_ADDRESS,
-      traits: VAULT721_SEPOLIA_ADAPATER_ADDRESS,
-      identifier: vaultId,
-      traitValues: _traitValues,
-      traitKeys: _traitKeys,
-    },
-  ];
+  ).then((array) => array.map((e)=> {
+    return e
+  }));
 
   //create encoded substandard 5 data with helper
   const extraData = await encodeSubstandard5Helper.encodeSubstandard5(
@@ -184,6 +179,7 @@ const createSIP15ZoneListing = async (chain: string) => {
   };
 
   try {
+    console.log('creating order');
     const { executeAllActions } = await seaport.createOrder(
       createOrderInput,
       wallet.address
@@ -201,7 +197,7 @@ const createSIP15ZoneListing = async (chain: string) => {
 // Check if the module is the main entry point
 if (require.main === module) {
   // If yes, run the createOffer function
-  createSIP15ZoneListing("anvil").catch((error) => {
+  createSIP15ZoneListing("sepolia").catch((error) => {
     console.error("Error in createListing:", error);
   });
 }
