@@ -111,7 +111,7 @@ const createSIP15ZoneListing = async (chain: string) => {
 // Check if the module is the main entry point
 if (require.main === module) {
     // If yes, run the createOffer function
-    createSIP15ZoneListing('anvil').catch((error) => {
+    createSIP15ZoneListing('sepolia').catch((error) => {
         console.error("Error in createListing:", error);
     });
 }
