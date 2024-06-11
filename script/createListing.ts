@@ -1,29 +1,58 @@
 import { BytesLike, ethers } from 'ethers';
 import {
-    WALLET_ADDRESS,
     VAULT721_SEPOLIA_ADDRESS,
     VAULT721_SEPOLIA_ADAPATER_ADDRESS,
     SIP15_ZONE_SEPOLIA_ADDRESS,
-    seaport,
-    wallet
+    ANVIL_ONE,
+    ANVIL_RPC,
+    ARB_SEPOLIA_RPC,
+    WALLET_PRIV_KEY
 } from './utils/constants';
-import { Vault721Adapter } from '../out/Vault721Adapter.sol/Vault721Adapter.json';
-import { ItemType } from "@opensea/seaport-js/src/constants.ts";
-const createSIP15ZoneListing = async () => {
+import {Abi, narrow} from 'abitype';
+const vault721AdapterABI = require('../out/Vault721Adapter.sol/Vault721Adapter.json');
+const sip15ZoneABI = require('../out/SIP15Zone.sol/SIP15Zone.json');
+import { ItemType } from "@opensea/seaport-js/src/constants";
+import { CreateOrderInput } from '@opensea/seaport-js/lib/types';
+import { Seaport } from "@opensea/seaport-js";
+import { Wallet, Provider } from 'ethers';
+
+const createSIP15ZoneListing = async (chain: string) => {
+    let provider: Provider;
+    let wallet: Wallet;
+    let seaport: Seaport;
+    if(chain == 'anvil'){
+        provider = new ethers.JsonRpcProvider(ANVIL_RPC);
+        wallet = new ethers.Wallet(
+           ANVIL_ONE as string,
+           provider
+       );
+        seaport = new Seaport(wallet);
+    } else if (chain == 'sepolia'){
+        provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
+        wallet = new ethers.Wallet(
+            WALLET_PRIV_KEY as string,
+           provider
+       );
+        seaport = new Seaport(wallet);
+    } else {
+        throw new Error('unsupported chain');
+    }
 
     // TODO: Fill in the token address and token ID of the NFT you want to sell, as well as the price
     let considerationTokenAddress: string = "";
     let vaultId: string = "";
     let listingAmount: string = "";
+    const vault721Adapter = new ethers.Contract(VAULT721_SEPOLIA_ADAPATER_ADDRESS!, vault721AdapterABI.abi);
+    const sip15Zone = new ethers.Contract(SIP15_ZONE_SEPOLIA_ADDRESS!, sip15ZoneABI.abi);
 
     /**
      * struct Substandard5Comparison {
-  uint8[] comparisonEnums;
-  address token;
-  address traits;
-  uint256 identifier;
-  bytes32[] traitValues;
-  bytes32[] traitKeys;
+        uint8[] comparisonEnums;
+        address token;
+        address traits;
+        uint256 identifier;
+        bytes32[] traitValues;
+        bytes32[] traitKeys;
     }
      */
     const substandard5ComparisonTypeString =
@@ -31,7 +60,8 @@ const createSIP15ZoneListing = async () => {
 
     const _comparisonEnums: number[] = [4, 5];
     const _traitKeys: BytesLike[] = [ethers.keccak256('DEBT'), ethers.keccak256('COLLATERAL')];
-    const _traitValues: BytesLike[] = await getValues(vaultId, _traitKeys);
+    const _traitValues: BytesLike[] = await vault721Adapter.getTraits(vaultId, _traitKeys);
+    
     const substandard5data = {
         comparisonEnums: _comparisonEnums,
         token: VAULT721_SEPOLIA_ADDRESS,
@@ -46,29 +76,31 @@ const createSIP15ZoneListing = async () => {
     const extraData = ethers.solidityPacked(['uint8', 'bytes'], [ethers.toBeHex('0x05'), encodedStruct]);
     // get zone hash by hashing extraData
     const zoneHash = ethers.keccak256(extraData);
+    const timeStamp = (await provider.getBlock('latest'))!.timestamp;
 
-    const listing = {
+    const createOrderInput: CreateOrderInput  = {
         offer: [
             {
                 itemType: ItemType.ERC721,
-                token: VAULT721_SEPOLIA_ADDRESS,
+                token: VAULT721_SEPOLIA_ADDRESS!,
                 identifier: vaultId
             },
         ],
         consideration: [
             {
-                itemType: ItemType.ERC20,
                 token: considerationTokenAddress,
-                amount: ethers.parseEther(listingAmount).toString(),
-                recipient: WALLET_ADDRESS
+                amount: ethers.parseEther(listingAmount).toString()
             },
         ],
+        startTime: timeStamp,
+        endTime: 10,
         zoneHash: zoneHash,
-        extraData: extraData
+        zone: SIP15_ZONE_SEPOLIA_ADDRESS,
+        restrictedByZone: true,
     }
 
     try {
-        const { executeAllActions } = await seaport.createOrder(listing, wallet.address);
+        const { executeAllActions } = await seaport.createOrder(createOrderInput, wallet.address);
         const order = await executeAllActions();
         console.log("Successfully created a listing with orderHash:", order.parameters);
     } catch (error) {
@@ -76,18 +108,10 @@ const createSIP15ZoneListing = async () => {
     }
 }
 
-async function getValues(tokenId: string, _traitKeys: BytesLike[]): Promise<BytesLike[]> {
-    const vault712Adapter = new
-        // create adaptor contract
-        //get values from adaptor
-        //return values array
-    return _traitKeys;
-}
-
 // Check if the module is the main entry point
 if (require.main === module) {
     // If yes, run the createOffer function
-    createSIP15ZoneListing().catch((error) => {
+    createSIP15ZoneListing('anvil').catch((error) => {
         console.error("Error in createListing:", error);
     });
 }
