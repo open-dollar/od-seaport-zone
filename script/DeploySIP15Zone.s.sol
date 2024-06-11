@@ -56,9 +56,6 @@ contract DeploySIP15ZoneWithENV is Script {
     console2.log('deployer balance:', deployer.balance);
   }
 
-  function _deploy() internal {
-    new SIP15Zone();
-  }
 }
 
 contract DeploySIP15ZoneWithCastWallet is Script {
@@ -89,7 +86,33 @@ contract DeploySIP15ZoneWithCastWallet is Script {
 
   }
 
-  function _deploy() internal {
-    new SIP15Zone();
+}
+// source .env && forge script script/DeploySIP15Zone.s.sol:DeployAnvil --with-gas-price 2000000000 -vvvvv --rpc-url $ANVIL_RPC --broadcast
+contract DeployAnvil is Script{
+    uint256 internal _privateKey;
+  address public deployer;
+  address public vault721;
+
+  function run() public {
+    _loadPrivateKeys();
+
+    vm.startBroadcast(_privateKey);
+    address zoneAddress = address(new SIP15Zone());
+    address vault721Adapter = address(new Vault721Adapter(IVault721(vault721)));
+    vm.stopBroadcast();
+    console2.log('Zone Deployed at: ', zoneAddress);
+    console2.log('vault721Adapter Deployed at: ', vault721Adapter);
   }
+
+  function _loadPrivateKeys() internal {
+
+      _privateKey = vm.envUint('ANVIL_ONE');
+      deployer = vm.addr(_privateKey);
+      vault721 = vm.envAddress('VAULT721_SEPOLIA_ADDRESS'); // SepoliaContracts.Vault721_Address;
+ 
+    console2.log('\n');
+    console2.log('deployer address:', deployer);
+    console2.log('deployer balance:', deployer.balance);
+  }
+
 }

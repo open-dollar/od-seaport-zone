@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import {Test, console} from 'forge-std/Test.sol';
-import {SIP15Encoder} from '../../src/sips/SIP15Encoder.sol';
+import {SIP15Encoder, Substandard5Comparison} from '../../src/sips/SIP15Encoder.sol';
 import {ZoneParameters, Schema} from 'seaport-types/src/lib/ConsiderationStructs.sol';
 import {
   ConsiderationItemLib,
@@ -113,6 +113,17 @@ contract SIP15Encoder_Unit_test is Test {
     );
   }
 
+  function test_EncodeSubstandarad5(Context memory context) public {
+        this.encodeSubstandard5(
+      context.fuzzInputs.comparisonEnum,
+      context.fuzzInputs.token,
+      context.fuzzInputs.token2,
+      context.fuzzInputs.tokenId,
+      context.fuzzInputs.traitValue,
+      context.fuzzInputs.traitKey
+    );
+  }
+
   function encodeSubstandard1Efficient(ZoneParameters calldata zoneParams, bytes32 _traitKey) public {
     bytes memory encodedData = SIP15Encoder.encodeSubstandard1Efficient(zoneParams, _traitKey);
     uint8 substandard = uint8(this.decodeSubstandardVersion(encodedData, 0));
@@ -192,6 +203,49 @@ contract SIP15Encoder_Unit_test is Test {
     assertEq(traitValue, _traitValue);
     assertEq(token, _token);
     assertEq(identifier, _identifier);
+  }
+
+   function encodeSubstandard5(
+    uint8 _comparisonEnum,
+    address _token,
+    address _traits,
+    uint256 _identifier,
+    bytes32 _traitValue,
+    bytes32 _traitKey
+  ) public view {
+    uint8[] memory _compEnums = new uint8[](2);
+    _compEnums[0] = _comparisonEnum;
+    _compEnums[1] = 69;
+    bytes32[] memory _traitValues = new bytes32[](2);
+    _traitValues[0] = _traitValue;
+    _traitValues[1] = bytes32(uint256(69));
+
+    bytes32[] memory _traitKeys = new bytes32[](2);
+    _traitKeys[0] = _traitKey;
+    _traitKeys[1] = bytes32(uint256(420));
+
+
+
+    Substandard5Comparison memory comparison = Substandard5Comparison({
+      comparisonEnums: _compEnums, token: _token, traits: _traits, identifier: _identifier,
+      traitValues: _traitValues, traitKeys: _traitKeys
+    });
+    bytes memory encodedData =
+      SIP15Encoder.encodeSubstandard5(comparison);
+    uint8 substandard = uint8(this.decodeSubstandardVersion(encodedData, 0));
+    console.log(substandard);
+    console.log('encoded data');
+    console.logBytes(encodedData);
+    bytes memory trimmedData = this.trimSubstandard(encodedData);
+    (Substandard5Comparison memory returnComp) =
+      abi.decode(trimmedData, (Substandard5Comparison));
+
+    assertEq(substandard, 5);
+    assertEq(returnComp.comparisonEnums[0], _comparisonEnum);
+    assertEq(returnComp.traitKeys[0], _traitKey);
+    assertEq(returnComp.traitValues[0], _traitValue);
+    assertEq(returnComp.token, _token);
+    assertEq(returnComp.identifier, _identifier);
   }
 
   function trimSubstandard(bytes calldata dataToTrim) external pure returns (bytes memory data) {
