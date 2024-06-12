@@ -1,7 +1,7 @@
 require("dotenv").config();
 import fs from "fs";
 import path from "path";
-import { BigNumberish, BytesLike, ethers, Wallet, Provider } from "ethers";
+import { ethers, Wallet, Provider } from "ethers";
 import { Seaport } from "@opensea/seaport-js";
 import {
   Vault721Adapter,
