@@ -30,23 +30,24 @@ const vault721AdapterABI = require("../out/Vault721Adapter.sol/Vault721Adapter.j
 const EncodeSubstandard5ForEthersABI = require("../out/EncodeSubstandard5ForEthers.sol/EncodeSubstandard5ForEthers.json");
 
 const createSIP15ZoneListing = async (chain: string) => {
-
   let provider: Provider;
   let wallet: Wallet;
   let seaport: Seaport;
   let encodeSubstandard5Helper: EncodeSubstandard5ForEthers;
-  let vault721AdapterAddress: AddressLike;
-  let vault721Address: AddressLike;
-  let sip15ZoneAddress: AddressLike;
-
-
+  let vault721AdapterAddress: string;
+  let vault721Address: string;
+  let sip15ZoneAddress: string;
 
   if (chain == "anvil") {
     provider = new ethers.JsonRpcProvider(ANVIL_RPC);
     wallet = new ethers.Wallet(ANVIL_ONE as string, provider);
     seaport = new Seaport(wallet);
 
-    if (VAULT721_ANVIL_ADAPTER_ADDRESS && VAULT721_ANVIL_ADDRESS) {
+    if (
+      VAULT721_ANVIL_ADAPTER_ADDRESS &&
+      VAULT721_ANVIL_ADDRESS &&
+      SIP15_ZONE_SEPOLIA_ADDRESS
+    ) {
       vault721AdapterAddress = VAULT721_ANVIL_ADAPTER_ADDRESS;
       vault721Address = VAULT721_ANVIL_ADDRESS;
       sip15ZoneAddress = SIP15_ZONE_SEPOLIA_ADDRESS;
@@ -63,7 +64,6 @@ const createSIP15ZoneListing = async (chain: string) => {
 
       encodeSubstandard5Helper =
         (await encodeSubstandard5Factory.deploy()) as EncodeSubstandard5ForEthers;
-
     } else {
       encodeSubstandard5Helper = new ethers.Contract(
         ENCODING_HELPER_ANVIL,
@@ -76,7 +76,11 @@ const createSIP15ZoneListing = async (chain: string) => {
     wallet = new ethers.Wallet(ARB_SEPOLIA_PK as string, provider);
     seaport = new Seaport(wallet);
 
-    if (VAULT721_SEPOLIA_ADAPTER_ADDRESS) {
+    if (
+      VAULT721_SEPOLIA_ADAPTER_ADDRESS &&
+      SIP15_ZONE_SEPOLIA_ADDRESS &&
+      VAULT721_SEPOLIA_ADDRESS
+    ) {
       vault721AdapterAddress = VAULT721_SEPOLIA_ADAPTER_ADDRESS;
       vault721Address = VAULT721_SEPOLIA_ADDRESS;
       sip15ZoneAddress = SIP15_ZONE_SEPOLIA_ADDRESS;
@@ -100,41 +104,44 @@ const createSIP15ZoneListing = async (chain: string) => {
         wallet
       ) as unknown as EncodeSubstandard5ForEthers;
     }
-  // } else if (chain == 'mainnet'){
-  //   provider = new ethers.JsonRpcProvider(ARB_MAINNET_RPC);
-  //   wallet = new ethers.Wallet(ARB_MAINNET_PK as string, provider);
-  //   seaport = new Seaport(wallet);
+    // } else if (chain == 'mainnet'){
+    //   provider = new ethers.JsonRpcProvider(ARB_MAINNET_RPC);
+    //   wallet = new ethers.Wallet(ARB_MAINNET_PK as string, provider);
+    //   seaport = new Seaport(wallet);
 
-  //   if (VAULT721_MAINNET_ADAPTER_ADDRESS && VAULT721_MAINNET_ADDRESS) {
-  //     vault721AdapterAddress = VAULT721_MAINNET_ADAPTER_ADDRESS;
-  //     vault721Address = VAULT721_MAINNET_ADDRESS;
-  //   } else {
-  //     throw new Error("VAULT721_MAINNET_ADAPTER_ADDRESS undefined");
-  //   }
+    //   if (VAULT721_MAINNET_ADAPTER_ADDRESS && VAULT721_MAINNET_ADDRESS) {
+    //     vault721AdapterAddress = VAULT721_MAINNET_ADAPTER_ADDRESS;
+    //     vault721Address = VAULT721_MAINNET_ADDRESS;
+    //   } else {
+    //     throw new Error("VAULT721_MAINNET_ADAPTER_ADDRESS undefined");
+    //   }
 
-  //   // if no helper exists deploy helper
-  //   if (!ENCODING_HELPER_MAINNET) {
-  //     const encodeSubstandard5Factory = new ethers.ContractFactory(
-  //       EncodeSubstandard5ForEthersABI.abi,
-  //       EncodeSubstandard5ForEthersABI.bytecode,
-  //       wallet
-  //     );
-  //     encodeSubstandard5Helper =
-  //       (await encodeSubstandard5Factory.deploy()) as EncodeSubstandard5ForEthers;
-  //   } else {
-  //     encodeSubstandard5Helper = new ethers.Contract(
-  //       ENCODING_HELPER_MAINNET,
-  //       EncodeSubstandard5ForEthersABI.abi,
-  //       wallet
-  //     ) as unknown as EncodeSubstandard5ForEthers;
-  //   }
+    //   // if no helper exists deploy helper
+    //   if (!ENCODING_HELPER_MAINNET) {
+    //     const encodeSubstandard5Factory = new ethers.ContractFactory(
+    //       EncodeSubstandard5ForEthersABI.abi,
+    //       EncodeSubstandard5ForEthersABI.bytecode,
+    //       wallet
+    //     );
+    //     encodeSubstandard5Helper =
+    //       (await encodeSubstandard5Factory.deploy()) as EncodeSubstandard5ForEthers;
+    //   } else {
+    //     encodeSubstandard5Helper = new ethers.Contract(
+    //       ENCODING_HELPER_MAINNET,
+    //       EncodeSubstandard5ForEthersABI.abi,
+    //       wallet
+    //     ) as unknown as EncodeSubstandard5ForEthers;
+    //   }
   } else {
     throw new Error("unsupported chain");
   }
-  // TODO: Fill in the token address and token ID of the NFT you want to sell, as well as the price
-  let considerationTokenAddress: string = "0x8c12A21C8D62d794f78E02aE9e377Abee4750E87";
-  let vaultId: string = "120";
 
+  /** @TODO  Fill in the token address and token ID of the NFT you want to sell, as well as the price */
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  let considerationTokenAddress: string =
+    "0x8c12A21C8D62d794f78E02aE9e377Abee4750E87";
+  let vaultId: string = "120";
   let listingAmount: string = ethers.parseEther("1").toString();
 
   const vault721Adapter = new ethers.Contract(
@@ -142,19 +149,20 @@ const createSIP15ZoneListing = async (chain: string) => {
     vault721AdapterABI.abi,
     wallet
   ) as unknown as Vault721Adapter;
- 
+
   const _comparisonEnums: BigNumberish[] = [4, 5] as BigNumberish[];
   const _traitKeys: BytesLike[] = [
     ethers.keccak256(ethers.toUtf8Bytes("DEBT")),
     ethers.keccak256(ethers.toUtf8Bytes("COLLATERAL")),
   ];
 
-  const _traitValues: BytesLike[] = await vault721Adapter.getTraitValues(
-    ethers.toBigInt(vaultId),
-    _traitKeys
-  ).then((array) => array.map((e: BytesLike)=> {
-    return e
-  }));
+  const _traitValues: BytesLike[] = await vault721Adapter
+    .getTraitValues(ethers.toBigInt(vaultId), _traitKeys)
+    .then((array) =>
+      array.map((e: BytesLike) => {
+        return e;
+      })
+    );
 
   //create encoded substandard 5 data with helper
   const extraData = await encodeSubstandard5Helper.encodeSubstandard5(
@@ -187,7 +195,7 @@ const createSIP15ZoneListing = async (chain: string) => {
     startTime: timeStamp,
     endTime: timeStamp,
     zoneHash: zoneHash,
-    zone: SIP15_ZONE_SEPOLIA_ADDRESS,
+    zone: sip15ZoneAddress,
     restrictedByZone: true,
   };
 
