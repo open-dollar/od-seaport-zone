@@ -10,6 +10,7 @@ import {SepoliaContracts} from '@opendollar/script/SepoliaContracts.s.sol';
 import {MainnetContracts} from '@opendollar/script/MainnetContracts.s.sol';
 import {EncodeSubstandard5ForEthers} from './utils/EncodeSubstandard5ForEthers.sol';
 
+
 // sepolia deployment
 // to use cast wallet:
 
@@ -39,6 +40,7 @@ contract DeploySIP15ZoneWithENV is Script {
     console2.log('Zone Deployed at: ', zoneAddress);
     console2.log('vault721Adapter Deployed at: ', vault721Adapter);
     console.log('encodingHelper deployed at: ', encodingHelper);
+
   }
 
   function _loadPrivateKeys() internal {
