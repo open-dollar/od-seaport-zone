@@ -1,6 +1,6 @@
 import { BigNumberish, BytesLike, ethers } from "ethers";
 import {
-  Web3ness
+  Web3Environment
 } from "./utils/constants";
 import { ItemType } from "@opensea/seaport-js/src/constants";
 import { CreateOrderInput } from "@opensea/seaport-js/lib/types";
@@ -8,7 +8,15 @@ import { CreateOrderInput } from "@opensea/seaport-js/lib/types";
 
 
 const createSIP15ZoneListing = async (chain: string) => {
-  const web3ness = new Web3ness(chain);
+  const web3Env = new Web3Environment(chain);
+  const vault721Adapter = web3Env.vault721Adapter;
+  const encodeSubstandard5Helper = web3Env.encodeSubstandard5Helper;
+  const vault721AdapterAddress = web3Env.vault721AdapterAddress;
+  const vault721Address = web3Env.vault721Address;
+  const provider = web3Env.provider;
+  const sip15ZoneAddress = web3Env.sip15ZoneAddress;
+  const seaport = web3Env.seaport;
+  const wallet = web3Env.wallet;
 
   /** @TODO  Fill in the token address and token ID of the NFT you want to sell, as well as the price */
   //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -26,7 +34,7 @@ const createSIP15ZoneListing = async (chain: string) => {
     ethers.keccak256(ethers.toUtf8Bytes("COLLATERAL")),
   ];
 
-  const _traitValues: BytesLike[] = await web3ness.vault721Adapter
+  const _traitValues: BytesLike[] = await vault721Adapter
     .getTraitValues(ethers.toBigInt(vaultId), _traitKeys)
     .then((array) =>
       array.map((e: BytesLike) => {
@@ -35,10 +43,10 @@ const createSIP15ZoneListing = async (chain: string) => {
     );
 
   //create encoded substandard 5 data with helper
-  const extraData = await web3ness.encodeSubstandard5Helper!.encodeSubstandard5(
+  const extraData = await encodeSubstandard5Helper!.encodeSubstandard5(
     _comparisonEnums,
-    web3ness.vault721Address,
-    web3ness.vault721AdapterAddress,
+    vault721Address,
+    vault721AdapterAddress,
     vaultId,
     _traitValues,
     _traitKeys
@@ -46,13 +54,13 @@ const createSIP15ZoneListing = async (chain: string) => {
 
   // get zone hash by hashing extraData
   const zoneHash = ethers.keccak256(extraData);
-  const timeStamp = (await web3ness.provider.getBlock("latest"))!.timestamp;
+  const timeStamp = (await provider.getBlock("latest"))!.timestamp;
 
   const createOrderInput: CreateOrderInput = {
     offer: [
       {
         itemType: ItemType.ERC721,
-        token: web3ness.vault721Address,
+        token: vault721Address,
         identifier: vaultId,
       },
     ],
@@ -65,14 +73,14 @@ const createSIP15ZoneListing = async (chain: string) => {
     startTime: timeStamp,
     endTime: timeStamp,
     zoneHash: zoneHash,
-    zone: web3ness.sip15ZoneAddress,
+    zone: sip15ZoneAddress,
     restrictedByZone: true,
   };
 
   try {
-    const { executeAllActions } = await web3ness.seaport.createOrder(
+    const { executeAllActions } = await seaport.createOrder(
       createOrderInput,
-      web3ness.wallet.address
+      wallet.address
     );
     const order = await executeAllActions();
     console.log(

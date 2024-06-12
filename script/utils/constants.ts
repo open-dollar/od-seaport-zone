@@ -101,10 +101,10 @@ export const ENCODING_HELPER_SEPOLIA = checkSepoliaAddress(
   2
 );
 
-export const Vault721AdapterABI = require("../out/Vault721Adapter.sol/Vault721Adapter.json");
-export const EncodeSubstandard5ForEthersABI = require("../out/EncodeSubstandard5ForEthers.sol/EncodeSubstandard5ForEthers.json");
+export const Vault721AdapterABI = require("../../out/Vault721Adapter.sol/Vault721Adapter.json");
+export const EncodeSubstandard5ForEthersABI = require("../../out/EncodeSubstandard5ForEthers.sol/EncodeSubstandard5ForEthers.json");
 
-export class Web3ness {
+export class Web3Environment {
   provider: Provider;
   wallet: Wallet;
   seaport: Seaport;
@@ -113,7 +113,7 @@ export class Web3ness {
   vault721Address: string;
   sip15ZoneAddress: string;
   vault721Adapter:Vault721Adapter;
-  
+
   constructor(chain:string){
     if (chain == "sepolia") {
       this.provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
