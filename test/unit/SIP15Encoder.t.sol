@@ -114,7 +114,7 @@ contract SIP15Encoder_Unit_test is Test {
   }
 
   function test_EncodeSubstandarad5(Context memory context) public {
-        this.encodeSubstandard5(
+    this.encodeSubstandard5(
       context.fuzzInputs.comparisonEnum,
       context.fuzzInputs.token,
       context.fuzzInputs.token2,
@@ -205,7 +205,7 @@ contract SIP15Encoder_Unit_test is Test {
     assertEq(identifier, _identifier);
   }
 
-   function encodeSubstandard5(
+  function encodeSubstandard5(
     uint8 _comparisonEnum,
     address _token,
     address _traits,
@@ -224,21 +224,18 @@ contract SIP15Encoder_Unit_test is Test {
     _traitKeys[0] = _traitKey;
     _traitKeys[1] = bytes32(uint256(420));
 
-
-
     Substandard5Comparison memory comparison = Substandard5Comparison({
-      comparisonEnums: _compEnums, token: _token, traits: _traits, identifier: _identifier,
-      traitValues: _traitValues, traitKeys: _traitKeys
+      comparisonEnums: _compEnums,
+      token: _token,
+      traits: _traits,
+      identifier: _identifier,
+      traitValues: _traitValues,
+      traitKeys: _traitKeys
     });
-    bytes memory encodedData =
-      SIP15Encoder.encodeSubstandard5(comparison);
+    bytes memory encodedData = SIP15Encoder.encodeSubstandard5(comparison);
     uint8 substandard = uint8(this.decodeSubstandardVersion(encodedData, 0));
-    console.log(substandard);
-    console.log('encoded data');
-    console.logBytes(encodedData);
     bytes memory trimmedData = this.trimSubstandard(encodedData);
-    (Substandard5Comparison memory returnComp) =
-      abi.decode(trimmedData, (Substandard5Comparison));
+    (Substandard5Comparison memory returnComp) = abi.decode(trimmedData, (Substandard5Comparison));
 
     assertEq(substandard, 5);
     assertEq(returnComp.comparisonEnums[0], _comparisonEnum);
