@@ -19,7 +19,7 @@ const createSIP15ZoneListing = async (chain: string) => {
   const wallet = web3Env.wallet;
 
   /** @TODO  Fill in the token address and token ID of the NFT you want to sell, as well as the price */
-  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
   let considerationTokenAddress: string =
     "0x8c12A21C8D62d794f78E02aE9e377Abee4750E87";
