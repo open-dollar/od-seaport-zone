@@ -1,6 +1,12 @@
 require("dotenv").config();
 import fs from "fs";
 import path from "path";
+import { BigNumberish, BytesLike, ethers, Wallet, Provider } from "ethers";
+import { Seaport } from "@opensea/seaport-js";
+import {
+  Vault721Adapter,
+  EncodeSubstandard5ForEthers,
+} from "../../types/ethers-contracts/index";
 
 const baseSepoliaPath = path.join(
   "node_modules/@opendollar/contracts/script/SepoliaContracts.s.sol"
@@ -8,9 +14,7 @@ const baseSepoliaPath = path.join(
 const baseMainnetPath = path.join(
   "node_modules/@opendollar/contracts/script/MainnetContracts.s.sol"
 );
-const baseAnvilDeploymentsPath = path.join(
-  "broadcast/DeploySIP15Zone.s.sol/31337/run-latest.json"
-);
+
 const baseSepoliaDeploymentsPath = path.join(
   "broadcast/DeploySIP15Zone.s.sol/421614/run-latest.json"
 );
@@ -32,9 +36,6 @@ const sepoliaContractsString: string = fs.readFileSync(
 const mainnetContractsString: string = fs.readFileSync(
   baseMainnetPath,
   "utf-8"
-);
-const anvilDeployments = JSON.parse(
-  fs.readFileSync(baseAnvilDeploymentsPath, "utf-8")
 );
 const sepoliaDeployments = JSON.parse(
   fs.readFileSync(baseSepoliaDeploymentsPath, "utf-8")
@@ -76,23 +77,19 @@ export const ARB_SEPOLIA_PK = process.env.ARB_SEPOLIA_PK;
 export const ARB_MAINNET_PK = process.env.ARB_MAINNET_PK;
 export const ARB_SEPOLIA_RPC = process.env.ARB_SEPOLIA_RPC;
 export const ARB_MAINNET_RPC = process.env.ARB_MAINNET_RPC;
-export const ANVIL_ONE = process.env.ANVIL_ONE;
-export const ANVIL_RPC = process.env.ANVIL_RPC;
+
 
 //   export const SIP15_ZONE_MAINNET_ADDRESS = checkMainnetAddress(mainnetDeployments, 0)
 export const SIP15_ZONE_SEPOLIA_ADDRESS = checkSepoliaAddress(
   sepoliaDeployments,
   0
 );
-export const SIP15_ZONE_ANVIL_ADDRESS =
-  anvilDeployments.receipts[0].contractAddress;
 
 export const VAULT721_SEPOLIA_ADAPTER_ADDRESS = checkSepoliaAddress(
   sepoliaDeployments,
   1
 );
-export const VAULT721_ANVIL_ADAPTER_ADDRESS =
-  anvilDeployments.receipts[1].contractAddress;
+
 //   export const VAULT721_MAINNET_ADAPTER_ADDRESS = checkMainnetAddress(mainnetDeployments, 1)
 export const VAULT721_SEPOLIA_ADDRESS = sepoliaContracts.Vault721_Address;
 export const VAULT721_MAINNET_ADDRESS = mainnetContracts.Vault721_Address;
@@ -103,8 +100,91 @@ export const ENCODING_HELPER_SEPOLIA = checkSepoliaAddress(
   sepoliaDeployments,
   2
 );
-export const ENCODING_HELPER_ANVIL =
-  anvilDeployments.receipts[2].contractAddress;
+
+export const Vault721AdapterABI = require("../out/Vault721Adapter.sol/Vault721Adapter.json");
+export const EncodeSubstandard5ForEthersABI = require("../out/EncodeSubstandard5ForEthers.sol/EncodeSubstandard5ForEthers.json");
+
+export class Web3ness {
+  provider: Provider;
+  wallet: Wallet;
+  seaport: Seaport;
+  encodeSubstandard5Helper: EncodeSubstandard5ForEthers | undefined;
+  vault721AdapterAddress: string;
+  vault721Address: string;
+  sip15ZoneAddress: string;
+  vault721Adapter:Vault721Adapter;
+  
+  constructor(chain:string){
+    if (chain == "sepolia") {
+      this.provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
+      this.wallet = new ethers.Wallet(ARB_SEPOLIA_PK as string, this.provider);
+      this.seaport = new Seaport(this.wallet);
+  
+      if (
+        VAULT721_SEPOLIA_ADAPTER_ADDRESS &&
+        SIP15_ZONE_SEPOLIA_ADDRESS &&
+        VAULT721_SEPOLIA_ADDRESS
+      ) {
+        this.vault721AdapterAddress = VAULT721_SEPOLIA_ADAPTER_ADDRESS;
+        this.vault721Address = VAULT721_SEPOLIA_ADDRESS;
+        this.sip15ZoneAddress = SIP15_ZONE_SEPOLIA_ADDRESS;
+      } else {
+        throw new Error("VAULT721_SEPOLIA_ADAPTER_ADDRESS undefined");
+      }
+      // if no helper exists deploy helper
+      if (!ENCODING_HELPER_SEPOLIA) {
+        this.deployEncodingHelper();
+      } else {
+        this.encodeSubstandard5Helper = new ethers.Contract(
+          ENCODING_HELPER_SEPOLIA,
+          EncodeSubstandard5ForEthersABI.abi,
+          this.wallet
+        ) as unknown as EncodeSubstandard5ForEthers;
+      }
+      // } else if (chain == 'mainnet'){
+      //   provider = new ethers.JsonRpcProvider(ARB_MAINNET_RPC);
+      //   wallet = new ethers.Wallet(ARB_MAINNET_PK as string, provider);
+      //   seaport = new Seaport(wallet);
+  
+      //   if (VAULT721_MAINNET_ADAPTER_ADDRESS && VAULT721_MAINNET_ADDRESS) {
+      //     vault721AdapterAddress = VAULT721_MAINNET_ADAPTER_ADDRESS;
+      //     vault721Address = VAULT721_MAINNET_ADDRESS;
+      //   } else {
+      //     throw new Error("VAULT721_MAINNET_ADAPTER_ADDRESS undefined");
+      //   }
+  
+      //   // if no helper exists deploy helper
+        // this.deployEncodingHelper();
+      //   } else {
+      //     encodeSubstandard5Helper = new ethers.Contract(
+      //       ENCODING_HELPER_MAINNET,
+      //       EncodeSubstandard5ForEthersABI.abi,
+      //       wallet
+      //     ) as unknown as EncodeSubstandard5ForEthers;
+      //   }
+    } else {
+      throw new Error("unsupported chain");
+    }
+
+    this.vault721Adapter = new ethers.Contract(
+      this.vault721AdapterAddress,
+      Vault721AdapterABI.abi,
+      this.wallet
+    ) as unknown as Vault721Adapter;
+  
+  }
+
+  async deployEncodingHelper(){
+    const encodeSubstandard5Factory = new ethers.ContractFactory(
+      EncodeSubstandard5ForEthersABI.abi,
+      EncodeSubstandard5ForEthersABI.bytecode,
+      this.wallet
+    );
+    this.encodeSubstandard5Helper =
+      (await encodeSubstandard5Factory.deploy()) as EncodeSubstandard5ForEthers;
+  }
+
+}
 
 function checkMainnetAddress(
   deployment: any,
