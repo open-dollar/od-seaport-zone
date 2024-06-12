@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+import { AddressLike } from "ethers";
 import fs from "fs";
 import path from "path";
 
@@ -48,28 +49,30 @@ function stringToObject(str: string): ParsedObjectType{
 
 
   export const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
-  export const WALLET_PRIV_KEY = process.env.ARB_SEPOLIA_PK;
+  export const ARB_SEPOLIA_PK = process.env.ARB_SEPOLIA_PK;
+  export const ARB_MAINNET_PK = process.env.ARB_MAINNET_PK;
   export const ARB_SEPOLIA_RPC = process.env.ARB_SEPOLIA_RPC;
   export const ARB_MAINNET_RPC = process.env.ARB_MAINNET_RPC;
   export const ANVIL_ONE = process.env.ANVIL_ONE;
   export const ANVIL_RPC = process.env.ANVIL_RPC;
 
-  export const SIP15_ZONE_MAINNET_ADDRESS = checkMainnetAddress(mainnetDeployments, 0);
-  export const SIP15_ZONE_SEPOLIA_ADDRESS = checkSepoliaAddress(sepoliaDeployments, 0);
+//   export const SIP15_ZONE_MAINNET_ADDRESS = mainnetDeployments.receipts[0].contractAddress
+  export const SIP15_ZONE_SEPOLIA_ADDRESS = sepoliaDeployments.receipts[0].contractAddress
   export const SIP15_ZONE_ANVIL_ADDRESS = anvilDeployments.receipts[0].contractAddress;
-  export const VAULT721_SEPOLIA_ADAPTER_ADDRESS = checkSepoliaAddress(sepoliaDeployments, 1);
+
+  export const VAULT721_SEPOLIA_ADAPTER_ADDRESS = sepoliaDeployments.receipts[1].contractAddress
   export const VAULT721_ANVIL_ADAPTER_ADDRESS = anvilDeployments.receipts[1].contractAddress;
-  export const VAULT721_MAINNET_ADAPTER_ADDRESS =checkMainnetAddress(mainnetDeployments, 1);
+//   export const VAULT721_MAINNET_ADAPTER_ADDRESS = mainnetDeployments.receipts[1].contractAddress
   export const VAULT721_SEPOLIA_ADDRESS = sepoliaContracts.Vault721_Address;
   export const VAULT721_MAINNET_ADDRESS = mainnetContracts.Vault721_Address;
   export const VAULT721_ANVIL_ADDRESS = process.env.VAULT721_ANVIL_ADDRESS;
 
-  export const ENCODING_HELPER_MAINNET = checkMainnetAddress(mainnetDeployments,2);
-  export const ENCODING_HELPER_SEPOLIA = checkSepoliaAddress(sepoliaDeployments, 2);
+//   export const ENCODING_HELPER_MAINNET = mainnetDeployments.receipts[2].contractAddress
+  export const ENCODING_HELPER_SEPOLIA = sepoliaDeployments.receipts[2].contractAddress
   export const ENCODING_HELPER_ANVIL = anvilDeployments.receipts[2].contractAddress;
   
-  function checkMainnetAddress(deployment: any, index: number): string | unknown{
-    const result = ((): string | unknown => {
+  function checkMainnetAddress(deployment: any, index: number): AddressLike | undefined{
+    return (() => {
         try {
            return deployment.receipts[index].contractAddress
         } catch(error){
@@ -80,19 +83,17 @@ function stringToObject(str: string): ParsedObjectType{
             } else if (index == 2 && process.env.ENCODING_HELPER_MAINNET){
                 return process.env.ENCODING_HELPER_MAINNET;
             } else {
-            console.error(error);
+                console.error(error);
             }
         }
     })();
-        return result;
   }
 
-  function checkSepoliaAddress(deployment: any, index: number): string | unknown{
+  function checkSepoliaAddress(deployment: any, index: number): AddressLike | undefined{
     return(() => {
         try {
             return deployment.receipts[index].contractAddress
         } catch(error){
-            console.log(process.env.SIP15_ZONE_SEPOLIA_ADDRESS, process.env.VAULT721_SEPOLIA_ADAPTER_ADDRESS, process.env.ENCODING_HELPER_SEPOLIA)
             if(index == 0 && process.env.SIP15_ZONE_SEPOLIA_ADDRESS){
                 return process.env.SIP15_ZONE_SEPOLIA_ADDRESS;
             } else if (index == 1 && process.env.VAULT721_SEPOLIA_ADAPTER_ADDRESS){

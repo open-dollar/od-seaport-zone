@@ -4,16 +4,18 @@ import {
   VAULT721_ANVIL_ADDRESS,
   VAULT721_SEPOLIA_ADAPTER_ADDRESS,
   VAULT721_ANVIL_ADAPTER_ADDRESS,
-  VAULT721_MAINNET_ADAPTER_ADDRESS,
+  // VAULT721_MAINNET_ADAPTER_ADDRESS,
   VAULT721_MAINNET_ADDRESS,
   SIP15_ZONE_SEPOLIA_ADDRESS,
   ANVIL_ONE,
   ANVIL_RPC,
   ARB_SEPOLIA_RPC,
   ARB_MAINNET_RPC,
-  WALLET_PRIV_KEY,
-  ENCODING_HELPER,
+  ARB_SEPOLIA_PK,
+  ARB_MAINNET_PK,
+  ENCODING_HELPER_SEPOLIA,
   ENCODING_HELPER_ANVIL,
+  // ENCODING_HELPER_MAINNET
 } from "./utils/constants";
 import { ItemType } from "@opensea/seaport-js/src/constants";
 import { CreateOrderInput } from "@opensea/seaport-js/lib/types";
@@ -28,12 +30,16 @@ const vault721AdapterABI = require("../out/Vault721Adapter.sol/Vault721Adapter.j
 const EncodeSubstandard5ForEthersABI = require("../out/EncodeSubstandard5ForEthers.sol/EncodeSubstandard5ForEthers.json");
 
 const createSIP15ZoneListing = async (chain: string) => {
+
   let provider: Provider;
   let wallet: Wallet;
   let seaport: Seaport;
   let encodeSubstandard5Helper: EncodeSubstandard5ForEthers;
   let vault721AdapterAddress: AddressLike;
   let vault721Address: AddressLike;
+  let sip15ZoneAddress: AddressLike;
+
+
 
   if (chain == "anvil") {
     provider = new ethers.JsonRpcProvider(ANVIL_RPC);
@@ -43,6 +49,7 @@ const createSIP15ZoneListing = async (chain: string) => {
     if (VAULT721_ANVIL_ADAPTER_ADDRESS && VAULT721_ANVIL_ADDRESS) {
       vault721AdapterAddress = VAULT721_ANVIL_ADAPTER_ADDRESS;
       vault721Address = VAULT721_ANVIL_ADDRESS;
+      sip15ZoneAddress = SIP15_ZONE_SEPOLIA_ADDRESS;
     } else {
       throw new Error("VAULT721_ANVIL_ADAPTER_ADDRESS undefined");
     }
@@ -66,18 +73,19 @@ const createSIP15ZoneListing = async (chain: string) => {
     }
   } else if (chain == "sepolia") {
     provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
-    wallet = new ethers.Wallet(WALLET_PRIV_KEY as string, provider);
+    wallet = new ethers.Wallet(ARB_SEPOLIA_PK as string, provider);
     seaport = new Seaport(wallet);
 
-    if (VAULT721_SEPOLIA_ADAPTER_ADDRESS && VAULT721_SEPOLIA_ADDRESS) {
+    if (VAULT721_SEPOLIA_ADAPTER_ADDRESS) {
       vault721AdapterAddress = VAULT721_SEPOLIA_ADAPTER_ADDRESS;
       vault721Address = VAULT721_SEPOLIA_ADDRESS;
+      sip15ZoneAddress = SIP15_ZONE_SEPOLIA_ADDRESS;
     } else {
       throw new Error("VAULT721_SEPOLIA_ADAPTER_ADDRESS undefined");
     }
 
     // if no helper exists deploy helper
-    if (!ENCODING_HELPER) {
+    if (!ENCODING_HELPER_SEPOLIA) {
       const encodeSubstandard5Factory = new ethers.ContractFactory(
         EncodeSubstandard5ForEthersABI.abi,
         EncodeSubstandard5ForEthersABI.bytecode,
@@ -87,45 +95,45 @@ const createSIP15ZoneListing = async (chain: string) => {
         (await encodeSubstandard5Factory.deploy()) as EncodeSubstandard5ForEthers;
     } else {
       encodeSubstandard5Helper = new ethers.Contract(
-        ENCODING_HELPER,
+        ENCODING_HELPER_SEPOLIA,
         EncodeSubstandard5ForEthersABI.abi,
         wallet
       ) as unknown as EncodeSubstandard5ForEthers;
     }
-  } else if (chain == 'mainnet'){
-    provider = new ethers.JsonRpcProvider(ARB_MAINNET_RPC);
-    wallet = new ethers.Wallet(WALLET_PRIV_KEY as string, provider);
-    seaport = new Seaport(wallet);
+  // } else if (chain == 'mainnet'){
+  //   provider = new ethers.JsonRpcProvider(ARB_MAINNET_RPC);
+  //   wallet = new ethers.Wallet(ARB_MAINNET_PK as string, provider);
+  //   seaport = new Seaport(wallet);
 
-    if (VAULT721_MAINNET_ADAPTER_ADDRESS && VAULT721_MAINNET_ADDRESS) {
-      vault721AdapterAddress = VAULT721_MAINNET_ADAPTER_ADDRESS;
-      vault721Address = VAULT721_MAINNET_ADDRESS;
-    } else {
-      throw new Error("VAULT721_MAINNET_ADAPTER_ADDRESS undefined");
-    }
+  //   if (VAULT721_MAINNET_ADAPTER_ADDRESS && VAULT721_MAINNET_ADDRESS) {
+  //     vault721AdapterAddress = VAULT721_MAINNET_ADAPTER_ADDRESS;
+  //     vault721Address = VAULT721_MAINNET_ADDRESS;
+  //   } else {
+  //     throw new Error("VAULT721_MAINNET_ADAPTER_ADDRESS undefined");
+  //   }
 
-    // if no helper exists deploy helper
-    if (!ENCODING_HELPER) {
-      const encodeSubstandard5Factory = new ethers.ContractFactory(
-        EncodeSubstandard5ForEthersABI.abi,
-        EncodeSubstandard5ForEthersABI.bytecode,
-        wallet
-      );
-      encodeSubstandard5Helper =
-        (await encodeSubstandard5Factory.deploy()) as EncodeSubstandard5ForEthers;
-    } else {
-      encodeSubstandard5Helper = new ethers.Contract(
-        ENCODING_HELPER,
-        EncodeSubstandard5ForEthersABI.abi,
-        wallet
-      ) as unknown as EncodeSubstandard5ForEthers;
-    }
+  //   // if no helper exists deploy helper
+  //   if (!ENCODING_HELPER_MAINNET) {
+  //     const encodeSubstandard5Factory = new ethers.ContractFactory(
+  //       EncodeSubstandard5ForEthersABI.abi,
+  //       EncodeSubstandard5ForEthersABI.bytecode,
+  //       wallet
+  //     );
+  //     encodeSubstandard5Helper =
+  //       (await encodeSubstandard5Factory.deploy()) as EncodeSubstandard5ForEthers;
+  //   } else {
+  //     encodeSubstandard5Helper = new ethers.Contract(
+  //       ENCODING_HELPER_MAINNET,
+  //       EncodeSubstandard5ForEthersABI.abi,
+  //       wallet
+  //     ) as unknown as EncodeSubstandard5ForEthers;
+  //   }
   } else {
     throw new Error("unsupported chain");
   }
   // TODO: Fill in the token address and token ID of the NFT you want to sell, as well as the price
-  let considerationTokenAddress: string = "";
-  let vaultId: string = "1";
+  let considerationTokenAddress: string = "0x8c12A21C8D62d794f78E02aE9e377Abee4750E87";
+  let vaultId: string = "120";
 
   let listingAmount: string = ethers.parseEther("1").toString();
 
@@ -166,7 +174,7 @@ const createSIP15ZoneListing = async (chain: string) => {
     offer: [
       {
         itemType: ItemType.ERC721,
-        token: VAULT721_SEPOLIA_ADDRESS!,
+        token: vault721Address,
         identifier: vaultId,
       },
     ],
@@ -184,7 +192,6 @@ const createSIP15ZoneListing = async (chain: string) => {
   };
 
   try {
-
     const { executeAllActions } = await seaport.createOrder(
       createOrderInput,
       wallet.address
