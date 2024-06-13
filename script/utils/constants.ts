@@ -53,7 +53,8 @@ const sepoliaContracts = stringToObject(sepoliaContractsString);
 const mainnetContracts = stringToObject(mainnetContractsString);
 
 export const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
-export const ARB_SEPOLIA_PK = process.env.ARB_SEPOLIA_PK;
+export const ARB_SEPOLIA_PK1 = process.env.ARB_SEPOLIA_PK1;
+export const ARB_SEPOLIA_PK2 = process.env.ARB_SEPOLIA_PK2;
 export const ARB_MAINNET_PK = process.env.ARB_MAINNET_PK;
 export const ARB_SEPOLIA_RPC = process.env.ARB_SEPOLIA_RPC;
 export const ARB_MAINNET_RPC = process.env.ARB_MAINNET_RPC;
@@ -97,15 +98,25 @@ export class Web3Environment {
   vault721Adapter: Vault721Adapter;
   vault721: Vault721;
 
-  constructor(chain: string) {
+  constructor(walletType: string, chain: string) {
     if (chain == "sepolia") {
-      if (ARB_SEPOLIA_RPC && ARB_SEPOLIA_PK) {
+      if(walletType == 'offerer'){
+      if (ARB_SEPOLIA_RPC && ARB_SEPOLIA_PK2) {
         this.provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
-        this.wallet = new ethers.Wallet(ARB_SEPOLIA_PK, this.provider);
+        this.wallet = new ethers.Wallet(ARB_SEPOLIA_PK2, this.provider);
         this.seaport = new Seaport(this.wallet);
       } else {
         throw new Error(".env VARS missing: ARB_SEPOLIA_RPC, ARB_SEPOLIA_PK");
       }
+    } else {
+      if (ARB_SEPOLIA_RPC && ARB_SEPOLIA_PK1) {
+        this.provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
+        this.wallet = new ethers.Wallet(ARB_SEPOLIA_PK1, this.provider);
+        this.seaport = new Seaport(this.wallet);
+      } else {
+        throw new Error(".env VARS missing: ARB_SEPOLIA_RPC, ARB_SEPOLIA_PK");
+      }
+    }
       if (
         VAULT721_SEPOLIA_ADAPTER_ADDRESS &&
         SIP15_ZONE_SEPOLIA_ADDRESS &&

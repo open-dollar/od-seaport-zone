@@ -10,7 +10,7 @@ const chain = args[0];
 const jsonPath = args[1];
 
 const fulfillSIP15Order = async (chain: string, pathToOrder: string) => {
-  const web3Env = new Web3Environment(chain);
+  const web3Env = new Web3Environment('fulfiller', chain);
   const seaport = web3Env.seaport;
   const wallet = web3Env.wallet;
   
@@ -27,13 +27,18 @@ const fulfillSIP15Order = async (chain: string, pathToOrder: string) => {
   );
 
   try {
-    const conduit = (await seaport.contract.information()).conduitController;
-    console.log(await seaport.contract.getAddress());
-    await erc20.approve(await seaport.contract.getAddress(), orderWithCounter.parameters.consideration[0].endAmount);
-    await erc20.approve(conduit, orderWithCounter.parameters.consideration[0].endAmount);
+    const conduitAddress = (await seaport.contract.information()).conduitController;
+    const seaportAddress = await seaport.contract.getAddress();
+    console.log('seaport address:', seaportAddress);
+    console.log('conduit adress:',conduitAddress);
+    await erc20.approve(seaportAddress, ethers.MaxUint256);
+    await erc20.approve(conduitAddress, ethers.MaxUint256);
+    await erc20.approve(wallet.address, ethers.MaxUint256);
+    console.log('balance of:', await erc20.balanceOf(wallet.address));
 
     const { executeAllActions } = await seaport.fulfillOrder({
       order: orderWithCounter,
+      unitsToFill: 1,
       extraData: extraData,
       exactApproval: true
     });

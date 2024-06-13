@@ -16,7 +16,7 @@ const listingAmount = args[2].toString();
 
 
 const createSIP15ZoneListing = async (chain: string, vaultId: string, listingAmount:string) => {
-  const web3Env = new Web3Environment(chain);
+  const web3Env = new Web3Environment('offerer', chain);
   const vault721Address = web3Env.vault721Address;
   const vault721 = web3Env.vault721;
   const provider = web3Env.provider;
@@ -59,7 +59,9 @@ const createSIP15ZoneListing = async (chain: string, vaultId: string, listingAmo
   };
 
   try {
-    await vault721.approve(await seaport.contract.getAddress(), vaultId);
+    const conduit = (await seaport.contract.information()).conduitController;
+    await vault721.setApprovalForAll(await seaport.contract.getAddress(), true);
+    await vault721.setApprovalForAll(conduit, true);
     const { executeAllActions } = await seaport.createOrder(
       createOrderInput,
       wallet.address
