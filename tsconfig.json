@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "moduleResolution":"NodeNext",
+    "types": []
+  },
+  "include": ["script/**/*.ts", "script/fullfillSIP15Orderts"],
+  "exclude": ["node_modules"]
+}
+
