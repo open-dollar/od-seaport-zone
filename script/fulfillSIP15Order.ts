@@ -37,22 +37,21 @@ const fulfillSIP15Order = async (chain: string, pathToOrder: string) => {
     
     const fulfillment = await executeAllActions();
 
-    const parsedFulfillment = convertBigIntsToStrings(fulfillment);
+    // const parsedFulfillment = convertBigIntsToStrings(fulfillment);
 
-    const outPath = path.join(
-      `fullfillments/fullfillment-${parsedFulfillment.parameters.offer[0].identifierOrCriteria}-${parsedFulfillment.parameters.startTime}.json`
-    );
-    fs.writeFile(outPath, JSON.stringify(parsedFulfillment, null, 2), (err) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
+    // const outPath = path.join(
+    //   `fullfillments/fullfillment-${parsedFulfillment.parameters.offer[0].identifierOrCriteria}-${parsedFulfillment.parameters.startTime}.json`
+    // );
+    // fs.writeFile(outPath, JSON.stringify(parsedFulfillment, null, 2), (err) => {
+    //   if (err) {
+    //     console.error(err);
+    //     return;
+    //   }
 
-      console.log("order written to file successfully!");
-    });
+    //   console.log("fullfilment written to file successfully!");
+    // });
     console.log(
-      "Successfully fulfilled a listing with orderHash:",
-      parsedFulfillment.parameters
+      "Successfully fulfilled a listing:", fulfillment.to
     );
   } catch (error) {
     console.error("Error in fulfillment:", error);
