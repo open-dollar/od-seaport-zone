@@ -5,6 +5,9 @@ import {ethers} from 'ethers';
 import fs from "fs";
 import path from "path";
 
+const args = process.argv.slice(2);
+const chain = args[0];
+const jsonPath = args[1];
 
 const fulfillSIP15Order = async (chain: string, pathToOrder: string) => {
   const web3Env = new Web3Environment(chain);
@@ -37,19 +40,6 @@ const fulfillSIP15Order = async (chain: string, pathToOrder: string) => {
     
     const fulfillment = await executeAllActions();
 
-    // const parsedFulfillment = convertBigIntsToStrings(fulfillment);
-
-    // const outPath = path.join(
-    //   `fullfillments/fullfillment-${parsedFulfillment.parameters.offer[0].identifierOrCriteria}-${parsedFulfillment.parameters.startTime}.json`
-    // );
-    // fs.writeFile(outPath, JSON.stringify(parsedFulfillment, null, 2), (err) => {
-    //   if (err) {
-    //     console.error(err);
-    //     return;
-    //   }
-
-    //   console.log("fullfilment written to file successfully!");
-    // });
     console.log(
       "Successfully fulfilled a listing:", fulfillment.to
     );
@@ -61,7 +51,7 @@ const fulfillSIP15Order = async (chain: string, pathToOrder: string) => {
 // Check if the module is the main entry point
 if (require.main === module) {
   // If yes, run the createOffer function
-  fulfillSIP15Order("sepolia", "orders/order-120-1718295448.json").catch(
+  fulfillSIP15Order(chain, jsonPath).catch(
     (error) => {
       console.error("Error in fulfillSIP15ZoneOrder:", error);
     }

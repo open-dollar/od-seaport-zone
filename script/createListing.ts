@@ -8,7 +8,14 @@ import {convertBigIntsToStrings, getExtraData} from './utils/helpers';
 import fs from "fs";
 import path from "path";
 
-const createSIP15ZoneListing = async (chain: string) => {
+const args = process.argv.slice(2);
+const chain = args[0];
+const vaultId = args[1].toString();
+const listingAmount = args[2].toString();
+
+
+
+const createSIP15ZoneListing = async (chain: string, vaultId: string, listingAmount:string) => {
   const web3Env = new Web3Environment(chain);
   const vault721Address = web3Env.vault721Address;
   const vault721 = web3Env.vault721;
@@ -21,10 +28,9 @@ const createSIP15ZoneListing = async (chain: string) => {
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
   let considerationTokenAddress: string =
     "0x8c12A21C8D62d794f78E02aE9e377Abee4750E87";
-  let vaultId: string = "120";
-  let listingAmount: string = ethers.parseEther(".0000001").toString();
-
-  const extraData = await getExtraData(web3Env, vaultId);
+  listingAmount = ethers.parseEther(listingAmount).toString();
+  console.log(vaultId, listingAmount);
+  const extraData = await getExtraData(web3Env, vaultId.toString());
 
   // get zone hash by hashing extraData
   const zoneHash = ethers.keccak256(extraData);
@@ -42,7 +48,7 @@ const createSIP15ZoneListing = async (chain: string) => {
     consideration: [
       {
         token: considerationTokenAddress,
-        amount: ethers.parseEther(listingAmount).toString(),
+        amount: ethers.parseEther(listingAmount!).toString(),
       },
     ],
     startTime: timeStamp,
@@ -87,7 +93,7 @@ const createSIP15ZoneListing = async (chain: string) => {
 // Check if the module is the main entry point
 if (require.main === module) {
   // If yes, run the createOffer function
-  createSIP15ZoneListing("sepolia").catch((error) => {
+  createSIP15ZoneListing(chain, vaultId, listingAmount).catch((error) => {
     console.error("Error in createListing:", error);
   });
 }
