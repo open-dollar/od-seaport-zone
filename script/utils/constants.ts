@@ -83,6 +83,8 @@ export const ENCODING_HELPER_SEPOLIA = checkSepoliaAddress(
 export const Vault721AdapterABI = require("../../out/Vault721Adapter.sol/Vault721Adapter.json");
 export const EncodeSubstandard5ForEthersABI = require("../../out/EncodeSubstandard5ForEthers.sol/EncodeSubstandard5ForEthers.json");
 export const Vault721ABI = require("../../out/Vault721.sol/Vault721.json");
+export const ERC20ABI = require("../../out/ERC20.sol/ERC20.json");
+
 
 export class Web3Environment {
   provider: Provider;

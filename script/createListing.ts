@@ -19,7 +19,6 @@ const createSIP15ZoneListing = async (chain: string) => {
 
   /** @TODO  Fill in the token address and token ID of the NFT you want to sell, as well as the price */
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
   let considerationTokenAddress: string =
     "0x8c12A21C8D62d794f78E02aE9e377Abee4750E87";
   let vaultId: string = "120";
@@ -54,6 +53,7 @@ const createSIP15ZoneListing = async (chain: string) => {
   };
 
   try {
+    await vault721.approve(await seaport.contract.getAddress(), vaultId);
     const { executeAllActions } = await seaport.createOrder(
       createOrderInput,
       wallet.address
