@@ -95,12 +95,12 @@ export async function getExtraData(
   web3Env: Web3Environment,
   vaultId: string
 ): Promise<string> {
-  const _comparisonEnums: BigNumberish[] = [4, 5] as BigNumberish[];
+  // comparison Enums 3: equal to or less than... 5: equal to or greater than
+  const _comparisonEnums: BigNumberish[] = [3, 5] as BigNumberish[];
   const _traitKeys: BytesLike[] = [
     ethers.keccak256(ethers.toUtf8Bytes("DEBT")),
     ethers.keccak256(ethers.toUtf8Bytes("COLLATERAL")),
   ];
-
   const _traitValues: BytesLike[] = await web3Env.vault721Adapter
     .getTraitValues(ethers.toBigInt(vaultId), _traitKeys)
     .then((array) =>
@@ -108,7 +108,6 @@ export async function getExtraData(
         return e;
       })
     );
-
   //create encoded substandard 5 data with helper contract
   const extraData = await web3Env.encodeSubstandard5Helper!.encodeSubstandard5(
     _comparisonEnums,
@@ -118,6 +117,6 @@ export async function getExtraData(
     _traitValues,
     _traitKeys
   );
-
+  console.log(extraData)
   return extraData;
 }
