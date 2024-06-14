@@ -84,7 +84,7 @@ const createSIP15ZoneListing = async (
     });
     console.log(
       "Successfully created a listing with orderHash:",
-      order.parameters
+      seaport.getOrderHash(order.parameters)
     );
   } catch (error) {
     console.error("Error in createListing:", error);
