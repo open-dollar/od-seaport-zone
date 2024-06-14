@@ -86,7 +86,6 @@ export const EncodeSubstandard5ForEthersABI = require("../../out/EncodeSubstanda
 export const Vault721ABI = require("../../out/Vault721.sol/Vault721.json");
 export const ERC20ABI = require("../../out/ERC20.sol/ERC20.json");
 
-
 export class Web3Environment {
   provider: Provider;
   wallet: Wallet;
@@ -100,23 +99,23 @@ export class Web3Environment {
 
   constructor(walletType: string, chain: string) {
     if (chain == "sepolia") {
-      if(walletType == 'offerer'){
-      if (ARB_SEPOLIA_RPC && ARB_SEPOLIA_PK2) {
-        this.provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
-        this.wallet = new ethers.Wallet(ARB_SEPOLIA_PK2, this.provider);
-        this.seaport = new Seaport(this.wallet);
+      if (walletType == "offerer") {
+        if (ARB_SEPOLIA_RPC && ARB_SEPOLIA_PK2) {
+          this.provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
+          this.wallet = new ethers.Wallet(ARB_SEPOLIA_PK2, this.provider);
+          this.seaport = new Seaport(this.wallet);
+        } else {
+          throw new Error(".env VARS missing: ARB_SEPOLIA_RPC, ARB_SEPOLIA_PK");
+        }
       } else {
-        throw new Error(".env VARS missing: ARB_SEPOLIA_RPC, ARB_SEPOLIA_PK");
+        if (ARB_SEPOLIA_RPC && ARB_SEPOLIA_PK1) {
+          this.provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
+          this.wallet = new ethers.Wallet(ARB_SEPOLIA_PK1, this.provider);
+          this.seaport = new Seaport(this.wallet);
+        } else {
+          throw new Error(".env VARS missing: ARB_SEPOLIA_RPC, ARB_SEPOLIA_PK");
+        }
       }
-    } else {
-      if (ARB_SEPOLIA_RPC && ARB_SEPOLIA_PK1) {
-        this.provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
-        this.wallet = new ethers.Wallet(ARB_SEPOLIA_PK1, this.provider);
-        this.seaport = new Seaport(this.wallet);
-      } else {
-        throw new Error(".env VARS missing: ARB_SEPOLIA_RPC, ARB_SEPOLIA_PK");
-      }
-    }
       if (
         VAULT721_SEPOLIA_ADAPTER_ADDRESS &&
         SIP15_ZONE_SEPOLIA_ADDRESS &&

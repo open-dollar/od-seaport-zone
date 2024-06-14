@@ -1,10 +1,8 @@
 import { ethers } from "ethers";
-import {
-  Web3Environment
-} from "./utils/constants";
+import { Web3Environment } from "./utils/constants";
 import { ItemType } from "@opensea/seaport-js/src/constants";
 import { CreateOrderInput } from "@opensea/seaport-js/lib/types";
-import {convertBigIntsToStrings, getExtraData} from './utils/helpers';
+import { convertBigIntsToStrings, getExtraData } from "./utils/helpers";
 import fs from "fs";
 import path from "path";
 
@@ -13,10 +11,12 @@ const chain = args[0];
 const vaultId = args[1].toString();
 const listingAmount = args[2].toString();
 
-
-
-const createSIP15ZoneListing = async (chain: string, vaultId: string, listingAmount:string) => {
-  const web3Env = new Web3Environment('offerer', chain);
+const createSIP15ZoneListing = async (
+  chain: string,
+  vaultId: string,
+  listingAmount: string
+) => {
+  const web3Env = new Web3Environment("offerer", chain);
   const vault721Address = web3Env.vault721Address;
   const vault721 = web3Env.vault721;
   const provider = web3Env.provider;
@@ -48,11 +48,11 @@ const createSIP15ZoneListing = async (chain: string, vaultId: string, listingAmo
     consideration: [
       {
         token: considerationTokenAddress,
-        amount: ethers.parseEther(listingAmount!).toString(),
+        amount: listingAmount,
       },
     ],
     startTime: timeStamp,
-    endTime: (ethers.toBigInt(timeStamp + 100) + timeDelay).toString(),
+    endTime: (ethers.toBigInt(timeStamp + 86400) + timeDelay).toString(),
     zoneHash: zoneHash,
     zone: sip15ZoneAddress,
     restrictedByZone: true,
@@ -74,15 +74,14 @@ const createSIP15ZoneListing = async (chain: string, vaultId: string, listingAmo
     const outPath = path.join(
       `orders/order-${order.parameters.offer[0].identifierOrCriteria}-${order.parameters.startTime}.json`
     );
-     fs.writeFile(
-      outPath, JSON.stringify(parsedOrder, null, 2),  (err) => {
-        if (err) {
-          console.error(err);
-          return;
-        }
-    
-        console.log("order written to file successfully!");
-      });
+    fs.writeFile(outPath, JSON.stringify(parsedOrder, null, 2), (err) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+
+      console.log("order written to file successfully!");
+    });
     console.log(
       "Successfully created a listing with orderHash:",
       order.parameters
