@@ -53,8 +53,8 @@ const sepoliaContracts = stringToObject(sepoliaContractsString);
 const mainnetContracts = stringToObject(mainnetContractsString);
 
 export const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
-export const ARB_SEPOLIA_PK1 = process.env.ARB_SEPOLIA_PK1;
-export const ARB_SEPOLIA_PK2 = process.env.ARB_SEPOLIA_PK2;
+export const ARB_SEPOLIA_BUYER_PK = process.env.ARB_SEPOLIA_BUYER_PK;
+export const ARB_SEPOLIA_OFFERER_PK = process.env.ARB_SEPOLIA_OFFERER_PK;
 export const ARB_MAINNET_PK = process.env.ARB_MAINNET_PK;
 export const ARB_SEPOLIA_RPC = process.env.ARB_SEPOLIA_RPC;
 export const ARB_MAINNET_RPC = process.env.ARB_MAINNET_RPC;
@@ -81,10 +81,10 @@ export const ENCODING_HELPER_SEPOLIA = checkSepoliaAddress(
   2
 );
 
-export const Vault721AdapterABI = require("../../out/Vault721Adapter.sol/Vault721Adapter.json");
-export const EncodeSubstandard5ForEthersABI = require("../../out/EncodeSubstandard5ForEthers.sol/EncodeSubstandard5ForEthers.json");
-export const Vault721ABI = require("../../out/Vault721.sol/Vault721.json");
-export const ERC20ABI = require("../../out/ERC20.sol/ERC20.json");
+export const Vault721AdapterABI = require("../../abis/Vault721Adapter.json");
+export const EncodeSubstandard5ForEthersABI = require("../../abis/EncodeSubstandard5ForEthers.json");
+export const Vault721ABI = require("../../abis/Vault721.json");
+export const ERC20ABI = require("../../abis/ERC20.json");
 
 export class Web3Environment {
   provider: Provider;
@@ -100,17 +100,17 @@ export class Web3Environment {
   constructor(walletType: string, chain: string) {
     if (chain == "sepolia") {
       if (walletType == "offerer") {
-        if (ARB_SEPOLIA_RPC && ARB_SEPOLIA_PK2) {
+        if (ARB_SEPOLIA_RPC && ARB_SEPOLIA_OFFERER_PK) {
           this.provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
-          this.wallet = new ethers.Wallet(ARB_SEPOLIA_PK2, this.provider);
+          this.wallet = new ethers.Wallet(ARB_SEPOLIA_OFFERER_PK, this.provider);
           this.seaport = new Seaport(this.wallet);
         } else {
           throw new Error(".env VARS missing: ARB_SEPOLIA_RPC, ARB_SEPOLIA_PK");
         }
       } else {
-        if (ARB_SEPOLIA_RPC && ARB_SEPOLIA_PK1) {
+        if (ARB_SEPOLIA_RPC && ARB_SEPOLIA_BUYER_PK) {
           this.provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
-          this.wallet = new ethers.Wallet(ARB_SEPOLIA_PK1, this.provider);
+          this.wallet = new ethers.Wallet(ARB_SEPOLIA_BUYER_PK, this.provider);
           this.seaport = new Seaport(this.wallet);
         } else {
           throw new Error(".env VARS missing: ARB_SEPOLIA_RPC, ARB_SEPOLIA_PK");

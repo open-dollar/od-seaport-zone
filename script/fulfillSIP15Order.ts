@@ -29,12 +29,11 @@ const fulfillSIP15Order = async (chain: string, pathToOrder: string) => {
   try {
     const conduitAddress = (await seaport.contract.information()).conduitController;
     const seaportAddress = await seaport.contract.getAddress();
-    console.log('seaport address:', seaportAddress);
-    console.log('conduit adress:',conduitAddress);
+    
     await erc20.approve(seaportAddress, ethers.MaxUint256);
     await erc20.approve(conduitAddress, ethers.MaxUint256);
-    await erc20.approve(wallet.address, ethers.MaxUint256);
-    console.log('balance of:', await erc20.balanceOf(wallet.address));
+
+
 
     const { executeAllActions } = await seaport.fulfillOrder({
       order: orderWithCounter,
