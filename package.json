@@ -20,8 +20,8 @@
   "scripts": {
     "build": "forge build ; generate-types",
     "coverage": "forge coverage",
-    "createListing": "tsx script/createListing.ts",
-    "fulfillSIP15Order": "tsx script/fulfillSIP15Order.ts",
+    "create-listing": "tsx script/createListing.ts",
+    "fulfill": "tsx script/fulfillSIP15Order.ts",
     "lint:check": "yarn lint:sol && forge fmt --check",
     "lint:fix": "sort-package-json && forge fmt && yarn lint:sol --fix",
     "lint:sol": "cross-env solhint 'src/**/*.sol' 'test/**/*.sol'",
