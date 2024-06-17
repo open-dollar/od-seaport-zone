@@ -27,7 +27,7 @@ const createSIP15ZoneListing = async (
   /** @TODO  Fill in the token address and token ID of the NFT you want to sell, as well as the price */
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
   let considerationTokenAddress: string =
-    "0x8c12A21C8D62d794f78E02aE9e377Abee4750E87";
+    "0x3018EC2AD556f28d2c0665d10b55ebfa469fD749";
 
   listingAmount = ethers.parseEther(listingAmount).toString();
   const extraData = await getExtraData(web3Env, vaultId.toString());
