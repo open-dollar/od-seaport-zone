@@ -28,7 +28,7 @@ const createSIP15ZoneListing = async (
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
   let considerationTokenAddress: string =
     "0x8c12A21C8D62d794f78E02aE9e377Abee4750E87";
-    
+
   listingAmount = ethers.parseEther(listingAmount).toString();
   const extraData = await getExtraData(web3Env, vaultId.toString());
 
@@ -36,7 +36,7 @@ const createSIP15ZoneListing = async (
   const zoneHash = ethers.keccak256(extraData);
   const timeStamp = (await provider.getBlock("latest"))!.timestamp;
   const timeDelay = await vault721.timeDelay();
-  console.log('ZoneAddress', sip15ZoneAddress)
+  console.log("ZoneAddress", sip15ZoneAddress);
 
   const createOrderInput: CreateOrderInput = {
     offer: [

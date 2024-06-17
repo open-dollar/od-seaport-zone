@@ -117,6 +117,6 @@ export async function getExtraData(
     _traitValues,
     _traitKeys
   );
-  console.log(extraData)
+  console.log(extraData);
   return extraData;
 }

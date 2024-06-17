@@ -102,7 +102,10 @@ export class Web3Environment {
       if (walletType == "offerer") {
         if (ARB_SEPOLIA_RPC && ARB_SEPOLIA_OFFERER_PK) {
           this.provider = new ethers.JsonRpcProvider(ARB_SEPOLIA_RPC);
-          this.wallet = new ethers.Wallet(ARB_SEPOLIA_OFFERER_PK, this.provider);
+          this.wallet = new ethers.Wallet(
+            ARB_SEPOLIA_OFFERER_PK,
+            this.provider
+          );
           this.seaport = new Seaport(this.wallet);
         } else {
           throw new Error(".env VARS missing: ARB_SEPOLIA_RPC, ARB_SEPOLIA_PK");
