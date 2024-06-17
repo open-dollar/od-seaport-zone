@@ -38,3 +38,6 @@ lib/
 
 # Typescript
 types
+dist
+
+.nvmrc
