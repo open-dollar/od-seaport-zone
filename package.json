@@ -40,6 +40,9 @@
   "devDependencies": {
     "@typechain/ethers-v6": "^0.5.1",
     "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.0",
+    "opensea-js": "^7.1.9",
     "solhint": "^4.5.2",
     "solhint-plugin-defi-wonderland": "^1.1.3",
     "sort-package-json": "^2.8.0",
