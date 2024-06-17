@@ -10,7 +10,7 @@
     "moduleResolution":"NodeNext",
     "types": []
   },
-  "include": ["script/**/*.ts", "script/fullfillSIP15Orderts"],
+  "include": ["script/**/*.ts"],
   "exclude": ["node_modules"]
 }
 
