@@ -59,27 +59,22 @@ export const ARB_MAINNET_PK = process.env.ARB_MAINNET_PK;
 export const ARB_SEPOLIA_RPC = process.env.ARB_SEPOLIA_RPC;
 export const ARB_MAINNET_RPC = process.env.ARB_MAINNET_RPC;
 
-//   export const SIP15_ZONE_MAINNET_ADDRESS = checkMainnetAddress(mainnetDeployments, 0)
-export const SIP15_ZONE_SEPOLIA_ADDRESS = checkSepoliaAddress(
-  sepoliaDeployments,
-  0
-);
+export const SIP15_ZONE_MAINNET_ADDRESS =
+  process.env.SIP15_ZONE_MAINNET_ADDRESS;
+export const SIP15_ZONE_SEPOLIA_ADDRESS =
+  process.env.SIP15_ZONE_SEPOLIA_ADDRESS;
 
-export const VAULT721_SEPOLIA_ADAPTER_ADDRESS = checkSepoliaAddress(
-  sepoliaDeployments,
-  1
-);
+export const VAULT721_SEPOLIA_ADAPTER_ADDRESS =
+  process.env.VAULT721_SEPOLIA_ADAPTER_ADDRESS;
 
-//   export const VAULT721_MAINNET_ADAPTER_ADDRESS = checkMainnetAddress(mainnetDeployments, 1)
+export const VAULT721_MAINNET_ADAPTER_ADDRESS =
+  process.env.VAULT721_MAINNET_ADAPTER_ADDRESS;
 export const VAULT721_SEPOLIA_ADDRESS = sepoliaContracts.Vault721_Address;
 export const VAULT721_MAINNET_ADDRESS = mainnetContracts.Vault721_Address;
 export const VAULT721_ANVIL_ADDRESS = process.env.VAULT721_ANVIL_ADDRESS;
 
-//   export const ENCODING_HELPER_MAINNET = checkMainnetAddress(mainnetDeployments, 2)
-export const ENCODING_HELPER_SEPOLIA = checkSepoliaAddress(
-  sepoliaDeployments,
-  2
-);
+export const ENCODING_HELPER_MAINNET = process.env.ENCODING_HELPER_MAINNET;
+export const ENCODING_HELPER_SEPOLIA = process.env.ENCODING_HELPER_SEPOLIA;
 
 export const Vault721AdapterABI = require("../../abis/Vault721Adapter.json");
 export const EncodeSubstandard5ForEthersABI = require("../../abis/EncodeSubstandard5ForEthers.json");
