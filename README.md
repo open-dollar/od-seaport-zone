@@ -13,7 +13,9 @@
 
 # Dynamic Traits Enforcement Zone 
 
-SIP-15 https://github.com/open-dollar/SIPs/blob/main/SIPS/sip-15.md
+A Seaport zone for specifying and enforcing values of ERC-7496 Dynamic Traits
+
+View the SIP-15 standard: https://github.com/open-dollar/SIPs/blob/main/SIPS/sip-15.md
 
 ## Setup
 
