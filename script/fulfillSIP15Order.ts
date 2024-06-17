@@ -45,9 +45,10 @@ const fulfillSIP15Order = async (chain: string, pathToOrder: string) => {
     });
 
     const fulfillment = await executeAllActions();
-
+    console.log("fulfillerAddress: ", wallet.address);
     console.log("Successfully fulfilled a listing:", fulfillment.to);
   } catch (error) {
+    console.log("fulfillerAddress: ", wallet.address);
     console.error("Error in fulfillment:", error);
   }
 };
