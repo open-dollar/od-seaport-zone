@@ -1,0 +1,34 @@
+{
+  "parameters": {
+    "offerer": "0xC295763Eed507d4A0f8B77241c03dd3354781a15",
+    "zone": "0xc5736e1f01fb4f013c152b8315019ca20d30fc50",
+    "zoneHash": "0x4d3abe76bfcdbbdd1c6d2f8ef94635990cb84796de9585636935df52989ffa43",
+    "startTime": 1718666158,
+    "endTime": "1718752558",
+    "orderType": 2,
+    "offer": [
+      {
+        "itemType": 2,
+        "token": "0x05AC7e3ac152012B980407dEff2655c209667E4c",
+        "identifierOrCriteria": "137",
+        "startAmount": "1",
+        "endAmount": "1"
+      }
+    ],
+    "consideration": [
+      {
+        "itemType": 1,
+        "token": "0x3018EC2AD556f28d2c0665d10b55ebfa469fD749",
+        "identifierOrCriteria": "0",
+        "startAmount": "1000000000000000000",
+        "endAmount": "1000000000000000000",
+        "recipient": "0xC295763Eed507d4A0f8B77241c03dd3354781a15"
+      }
+    ],
+    "totalOriginalConsiderationItems": 1,
+    "salt": "0x000000000000000000000000000000000000000000000000fc1d1189654c12cc",
+    "conduitKey": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "counter": "0"
+  },
+  "signature": "0x85b19708b8151a36bcfc4abda4e4143f80fd26fe27e5a208205e02bf051990348d3fa32b10ae6125f06a00c4211d807bcd56344a3820b482f72854a2da1008c8"
+}
