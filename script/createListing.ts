@@ -1,8 +1,12 @@
-import { ethers } from "ethers";
+import { BytesLike, ethers } from "ethers";
 import { Web3Environment } from "./utils/constants";
 import { ItemType } from "@opensea/seaport-js/src/constants";
 import { CreateOrderInput } from "@opensea/seaport-js/lib/types";
-import { convertBigIntsToStrings, getExtraData } from "./utils/helpers";
+import {
+  convertBigIntsToStrings,
+  getExtraData,
+  convertOrder,
+} from "./utils/helpers";
 import fs from "fs";
 import path from "path";
 
@@ -69,7 +73,7 @@ const createSIP15ZoneListing = async (
 
     const order = await executeAllActions();
 
-    const parsedOrder = convertBigIntsToStrings(order);
+    const parsedOrder = convertBigIntsToStrings(convertOrder(order, extraData));
 
     const outPath = path.join(
       `orders/order-${order.parameters.offer[0].identifierOrCriteria}-${order.parameters.startTime}.json`

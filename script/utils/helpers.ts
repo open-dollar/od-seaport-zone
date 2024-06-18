@@ -1,10 +1,25 @@
 import { BigNumberish, BytesLike, ethers } from "ethers";
 import { Web3Environment } from "./constants";
+import { OrderWithCounter } from "@opensea/seaport-js/lib/types";
 
 type ParsedObjectType = {
   [key: string]: string;
 };
 
+export type OrderWithExtraData = {
+  order: OrderWithCounter;
+  extraData: BytesLike;
+};
+
+export const convertOrder = (
+  _order: OrderWithCounter,
+  _extraData: BytesLike
+): OrderWithExtraData => {
+  return {
+    order: _order,
+    extraData: _extraData,
+  };
+};
 export function stringToObject(str: string): ParsedObjectType {
   const parts = str.split(";");
   const trimmedObject: ParsedObjectType = {};
@@ -103,7 +118,7 @@ export async function getExtraData(
   ];
   const _traitValues: BytesLike[] = await web3Env.vault721Adapter
     .getTraitValues(ethers.toBigInt(vaultId), _traitKeys)
-    .then((array) =>
+    .then((array: BytesLike[]) =>
       array.map((e: BytesLike) => {
         return e;
       })
