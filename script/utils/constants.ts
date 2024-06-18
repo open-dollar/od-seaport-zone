@@ -67,8 +67,8 @@ export const SIP15_ZONE_SEPOLIA_ADDRESS =
 export const VAULT721_SEPOLIA_ADAPTER_ADDRESS =
   process.env.VAULT721_SEPOLIA_ADAPTER_ADDRESS;
 
-export const VAULT721_MAINNET_ADAPTER_ADDRESS =
-  process.env.VAULT721_MAINNET_ADAPTER_ADDRESS;
+export const VAULT721_ADAPTER_MAINNET_ADDRESS =
+  process.env.VAULT721_ADAPTER_MAINNET_ADDRESS;
 export const VAULT721_SEPOLIA_ADDRESS = sepoliaContracts.Vault721_Address;
 export const VAULT721_MAINNET_ADDRESS = mainnetContracts.Vault721_Address;
 export const VAULT721_ANVIL_ADDRESS = process.env.VAULT721_ANVIL_ADDRESS;
@@ -145,11 +145,11 @@ export class Web3Environment {
       //     throw new Error('.env VARS missing: ARB_MAINNET_RPC, ARB_MAINNET_PK')
       //   }
 
-      //   if (VAULT721_MAINNET_ADAPTER_ADDRESS && VAULT721_MAINNET_ADDRESS) {
-      //     vault721AdapterAddress = VAULT721_MAINNET_ADAPTER_ADDRESS;
+      //   if (VAULT721_ADAPTER_MAINNET_ADDRESS && VAULT721_MAINNET_ADDRESS) {
+      //     vault721AdapterAddress = VAULT721_ADAPTER_MAINNET_ADDRESS;
       //     vault721Address = VAULT721_MAINNET_ADDRESS;
       //   } else {
-      //     throw new Error("VAULT721_MAINNET_ADAPTER_ADDRESS undefined");
+      //     throw new Error("VAULT721_ADAPTER_MAINNET_ADDRESS undefined");
       //   }
 
       //   // if no helper exists deploy helper
