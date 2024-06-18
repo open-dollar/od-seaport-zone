@@ -55,31 +55,27 @@ const mainnetContracts = stringToObject(mainnetContractsString);
 export const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
 export const ARB_SEPOLIA_BUYER_PK = process.env.ARB_SEPOLIA_BUYER_PK;
 export const ARB_SEPOLIA_OFFERER_PK = process.env.ARB_SEPOLIA_OFFERER_PK;
-export const ARB_MAINNET_PK = process.env.ARB_MAINNET_PK;
+export const ARB_MAINNET_BUYER_PK = process.env.ARB_MAINNET_BUYER_PK;
+export const ARB_MAINNET_OFFERER_PK = process.env.ARB_MAINNET_OFFERER_PK;
 export const ARB_SEPOLIA_RPC = process.env.ARB_SEPOLIA_RPC;
 export const ARB_MAINNET_RPC = process.env.ARB_MAINNET_RPC;
 
-//   export const SIP15_ZONE_MAINNET_ADDRESS = checkMainnetAddress(mainnetDeployments, 0)
-export const SIP15_ZONE_SEPOLIA_ADDRESS = checkSepoliaAddress(
-  sepoliaDeployments,
-  0
-);
+export const SIP15_ZONE_MAINNET_ADDRESS =
+  process.env.SIP15_ZONE_MAINNET_ADDRESS;
+export const SIP15_ZONE_SEPOLIA_ADDRESS =
+  process.env.SIP15_ZONE_SEPOLIA_ADDRESS;
 
-export const VAULT721_SEPOLIA_ADAPTER_ADDRESS = checkSepoliaAddress(
-  sepoliaDeployments,
-  1
-);
+export const VAULT721_SEPOLIA_ADAPTER_ADDRESS =
+  process.env.VAULT721_SEPOLIA_ADAPTER_ADDRESS;
 
-//   export const VAULT721_MAINNET_ADAPTER_ADDRESS = checkMainnetAddress(mainnetDeployments, 1)
+export const VAULT721_ADAPTER_MAINNET_ADDRESS =
+  process.env.VAULT721_ADAPTER_MAINNET_ADDRESS;
 export const VAULT721_SEPOLIA_ADDRESS = sepoliaContracts.Vault721_Address;
 export const VAULT721_MAINNET_ADDRESS = mainnetContracts.Vault721_Address;
 export const VAULT721_ANVIL_ADDRESS = process.env.VAULT721_ANVIL_ADDRESS;
 
-//   export const ENCODING_HELPER_MAINNET = checkMainnetAddress(mainnetDeployments, 2)
-export const ENCODING_HELPER_SEPOLIA = checkSepoliaAddress(
-  sepoliaDeployments,
-  2
-);
+export const ENCODING_HELPER_MAINNET = process.env.ENCODING_HELPER_MAINNET;
+export const ENCODING_HELPER_SEPOLIA = process.env.ENCODING_HELPER_SEPOLIA;
 
 export const Vault721AdapterABI = require("../../abis/Vault721Adapter.json");
 export const EncodeSubstandard5ForEthersABI = require("../../abis/EncodeSubstandard5ForEthers.json");
@@ -150,11 +146,11 @@ export class Web3Environment {
       //     throw new Error('.env VARS missing: ARB_MAINNET_RPC, ARB_MAINNET_PK')
       //   }
 
-      //   if (VAULT721_MAINNET_ADAPTER_ADDRESS && VAULT721_MAINNET_ADDRESS) {
-      //     vault721AdapterAddress = VAULT721_MAINNET_ADAPTER_ADDRESS;
+      //   if (VAULT721_ADAPTER_MAINNET_ADDRESS && VAULT721_MAINNET_ADDRESS) {
+      //     vault721AdapterAddress = VAULT721_ADAPTER_MAINNET_ADDRESS;
       //     vault721Address = VAULT721_MAINNET_ADDRESS;
       //   } else {
-      //     throw new Error("VAULT721_MAINNET_ADAPTER_ADDRESS undefined");
+      //     throw new Error("VAULT721_ADAPTER_MAINNET_ADDRESS undefined");
       //   }
 
       //   // if no helper exists deploy helper

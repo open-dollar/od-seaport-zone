@@ -1,5 +1,9 @@
 import { Web3Environment, ERC20ABI } from "./utils/constants";
-import { convertBigIntsToStrings, getExtraData } from "./utils/helpers";
+import {
+  getExtraData,
+  OrderWithExtraData,
+  convertOrder,
+} from "./utils/helpers";
 import { OrderWithCounter } from "@opensea/seaport-js/src/types";
 import { ethers } from "ethers";
 import fs from "fs";
@@ -15,19 +19,16 @@ const fulfillSIP15Order = async (chain: string, pathToOrder: string) => {
   const wallet = web3Env.wallet;
 
   const _path = path.join(pathToOrder);
-  const orderWithCounter = JSON.parse(
+  const orderWithExtraData: OrderWithExtraData = JSON.parse(
     fs.readFileSync(_path, "utf-8")
-  ) as OrderWithCounter;
+  ) as OrderWithExtraData;
 
   const erc20 = new ethers.Contract(
-    orderWithCounter.parameters.consideration[0].token,
+    orderWithExtraData.order.parameters.consideration[0].token,
     ERC20ABI.abi,
     wallet
   );
-  const extraData = await getExtraData(
-    web3Env,
-    orderWithCounter.parameters.offer[0].identifierOrCriteria
-  );
+  const extraData = orderWithExtraData.extraData.toString();
 
   try {
     const conduitAddress = (await seaport.contract.information())
@@ -38,16 +39,17 @@ const fulfillSIP15Order = async (chain: string, pathToOrder: string) => {
     await erc20.approve(conduitAddress, ethers.MaxUint256);
 
     const { executeAllActions } = await seaport.fulfillOrder({
-      order: orderWithCounter,
+      order: orderWithExtraData.order,
       unitsToFill: 1,
       extraData: extraData,
       exactApproval: true,
     });
 
     const fulfillment = await executeAllActions();
-
+    console.log("fulfillerAddress: ", wallet.address);
     console.log("Successfully fulfilled a listing:", fulfillment.to);
   } catch (error) {
+    console.log("fulfillerAddress: ", wallet.address);
     console.error("Error in fulfillment:", error);
   }
 };

@@ -1,8 +1,12 @@
-import { ethers } from "ethers";
+import { BytesLike, ethers } from "ethers";
 import { Web3Environment } from "./utils/constants";
 import { ItemType } from "@opensea/seaport-js/src/constants";
 import { CreateOrderInput } from "@opensea/seaport-js/lib/types";
-import { convertBigIntsToStrings, getExtraData } from "./utils/helpers";
+import {
+  convertBigIntsToStrings,
+  getExtraData,
+  convertOrder,
+} from "./utils/helpers";
 import fs from "fs";
 import path from "path";
 
@@ -27,7 +31,7 @@ const createSIP15ZoneListing = async (
   /** @TODO  Fill in the token address and token ID of the NFT you want to sell, as well as the price */
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
   let considerationTokenAddress: string =
-    "0x8c12A21C8D62d794f78E02aE9e377Abee4750E87";
+    "0x3018EC2AD556f28d2c0665d10b55ebfa469fD749";
 
   listingAmount = ethers.parseEther(listingAmount).toString();
   const extraData = await getExtraData(web3Env, vaultId.toString());
@@ -36,7 +40,6 @@ const createSIP15ZoneListing = async (
   const zoneHash = ethers.keccak256(extraData);
   const timeStamp = (await provider.getBlock("latest"))!.timestamp;
   const timeDelay = await vault721.timeDelay();
-  console.log("ZoneAddress", sip15ZoneAddress);
 
   const createOrderInput: CreateOrderInput = {
     offer: [
@@ -70,7 +73,7 @@ const createSIP15ZoneListing = async (
 
     const order = await executeAllActions();
 
-    const parsedOrder = convertBigIntsToStrings(order);
+    const parsedOrder = convertBigIntsToStrings(convertOrder(order, extraData));
 
     const outPath = path.join(
       `orders/order-${order.parameters.offer[0].identifierOrCriteria}-${order.parameters.startTime}.json`

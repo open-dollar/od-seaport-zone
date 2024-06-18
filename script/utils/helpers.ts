@@ -1,10 +1,25 @@
 import { BigNumberish, BytesLike, ethers } from "ethers";
 import { Web3Environment } from "./constants";
+import { OrderWithCounter } from "@opensea/seaport-js/lib/types";
 
 type ParsedObjectType = {
   [key: string]: string;
 };
 
+export type OrderWithExtraData = {
+  order: OrderWithCounter;
+  extraData: BytesLike;
+};
+
+export const convertOrder = (
+  _order: OrderWithCounter,
+  _extraData: BytesLike
+): OrderWithExtraData => {
+  return {
+    order: _order,
+    extraData: _extraData,
+  };
+};
 export function stringToObject(str: string): ParsedObjectType {
   const parts = str.split(";");
   const trimmedObject: ParsedObjectType = {};
@@ -24,50 +39,6 @@ export function stringToObject(str: string): ParsedObjectType {
       trimmedObject[trimmedKey] = trimmedValue;
     });
   return trimmedObject;
-}
-
-export function checkMainnetAddress(
-  deployment: any,
-  index: number
-): string | undefined {
-  return (() => {
-    try {
-      return deployment.receipts[index].contractAddress;
-    } catch (error) {
-      if (index == 0 && process.env.SIP15_ZONE_MAINNET_ADDRESS) {
-        return process.env.SIP15_ZONE_MAINNET_ADDRESS;
-      } else if (index == 1 && process.env.VAULT721_MAINNET_ADAPTER_ADDRESS) {
-        return process.env.VAULT721_MAINNET_ADAPTER_ADDRESS;
-      } else if (index == 2 && process.env.ENCODING_HELPER_MAINNET) {
-        return process.env.ENCODING_HELPER_MAINNET;
-      } else {
-        console.error(error);
-      }
-    }
-  })();
-}
-
-export function checkSepoliaAddress(
-  deployment: any,
-  index: number
-): string | undefined {
-  return (() => {
-    try {
-      return deployment.receipts[index].contractAddress;
-    } catch (error) {
-      if (index == 0 && process.env.SIP15_ZONE_SEPOLIA_ADDRESS) {
-        return process.env.SIP15_ZONE_SEPOLIA_ADDRESS;
-      } else if (index == 1 && process.env.VAULT721_SEPOLIA_ADAPTER_ADDRESS) {
-        return process.env.VAULT721_SEPOLIA_ADAPTER_ADDRESS;
-      } else if (index == 2 && process.env.ENCODING_HELPER_SEPOLIA) {
-        return process.env.ENCODING_HELPER_SEPOLIA;
-      } else {
-        // console.error(error);
-        return null;
-        // throw new Error("addresses cannot be gotten");
-      }
-    }
-  })();
 }
 
 export function convertBigIntsToStrings(
@@ -103,7 +74,7 @@ export async function getExtraData(
   ];
   const _traitValues: BytesLike[] = await web3Env.vault721Adapter
     .getTraitValues(ethers.toBigInt(vaultId), _traitKeys)
-    .then((array) =>
+    .then((array: BytesLike[]) =>
       array.map((e: BytesLike) => {
         return e;
       })
