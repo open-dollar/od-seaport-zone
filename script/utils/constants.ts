@@ -55,7 +55,8 @@ const mainnetContracts = stringToObject(mainnetContractsString);
 export const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
 export const ARB_SEPOLIA_BUYER_PK = process.env.ARB_SEPOLIA_BUYER_PK;
 export const ARB_SEPOLIA_OFFERER_PK = process.env.ARB_SEPOLIA_OFFERER_PK;
-export const ARB_MAINNET_PK = process.env.ARB_MAINNET_PK;
+export const ARB_MAINNET_BUYER_PK = process.env.ARB_MAINNET_BUYER_PK;
+export const ARB_MAINNET_OFFERER_PK = process.env.ARB_MAINNET_OFFERER_PK;
 export const ARB_SEPOLIA_RPC = process.env.ARB_SEPOLIA_RPC;
 export const ARB_MAINNET_RPC = process.env.ARB_MAINNET_RPC;
 
