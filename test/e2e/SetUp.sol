@@ -106,4 +106,26 @@ contract SetUp is DeployForTest, ODTest, BaseOrderTest {
     );
     ODProxy(proxy).execute(address(basicActions), payload);
   }
+
+  function depositCollat(bytes32 _cType, uint256 _safeId, uint256 _collatAmount, address _proxy) public {
+    bytes memory payload = abi.encodeWithSelector(
+      basicActions.lockTokenCollateral.selector,
+      address(safeManager),
+      address(collateralJoin[_cType]),
+      _safeId,
+      _collatAmount
+    );
+    ODProxy(_proxy).execute(address(basicActions), payload);
+  }
+
+  function freeTokenCollateral(address _proxy, bytes32 _cType, uint256 _safeId, uint256 _deltaWad) public {
+    bytes memory payload = abi.encodeWithSelector(
+      basicActions.freeTokenCollateral.selector,
+      address(safeManager),
+      address(collateralJoin[_cType]),
+      _safeId,
+      _deltaWad
+    );
+    ODProxy(_proxy).execute(address(basicActions), payload);
+  }
 }

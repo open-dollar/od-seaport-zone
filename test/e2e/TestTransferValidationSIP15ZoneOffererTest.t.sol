@@ -301,6 +301,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     matchArgs.zoneHash = _getZoneHash(_getExtraData(matchArgs.tokenId));
 
     testFail(this.execMatchAdvancedOrders_Revert_DebtIncrease, Context(consideration, emptyFulfill, matchArgs));
+    testFail(this.execMatchAdvancedOrders_Revert_CollateralDecrease, Context(consideration, emptyFulfill, matchArgs));
   }
 
   function execMatchAdvancedOrdersFuzz(Context memory context) external stateless {
@@ -465,6 +466,96 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     } else {
       assertEq(infra.callerBalanceBefore, infra.callerBalanceAfter);
     }
+  }
+
+  function execMatchAdvancedOrders_Revert_CollateralDecrease(Context memory context) external stateless {
+    context.matchArgs.shouldIncludeExcessOfferItems = false;
+    // Set up the infrastructure for this function in a struct to avoid
+    // stack depth issues.
+    MatchAdvancedOrdersInfra memory infra = MatchAdvancedOrdersInfra({
+      orders: new Order[](context.matchArgs.orderPairCount),
+      fulfillments: new Fulfillment[](context.matchArgs.orderPairCount),
+      advancedOrders: new AdvancedOrder[](context.matchArgs.orderPairCount),
+      criteriaResolvers: new CriteriaResolver[](0),
+      callerBalanceBefore: 0,
+      callerBalanceAfter: 0,
+      primeOffererBalanceBefore: 0,
+      primeOffererBalanceAfter: 0
+    });
+    // resolvers.
+    context.matchArgs.mirrorOfferer = 'mirrorOfferer';
+    // The prime offerer is offering NFTs and considering ERC20/Native.
+    fuzzPrimeOfferer = makeAndAllocateAccount(context.matchArgs.primeOfferer);
+    // The mirror offerer is offering ERC20/Native and considering NFTs.
+    fuzzMirrorOfferer = makeAndAllocateAccount(context.matchArgs.mirrorOfferer);
+    //  fuzzMirrorOfferer.addr = address(uint160(bound(uint160(fuzzPrimeOfferer.addr), 1, type(uint160).max)));
+    vm.assume(fuzzPrimeOfferer.addr != fuzzMirrorOfferer.addr);
+
+    fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
+    fuzzMirrorProxy = deployOrFind(fuzzMirrorOfferer.addr);
+
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(conduit), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(referenceConsideration), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(referenceConduit), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(consideration), true);
+    vm.prank(fuzzPrimeOfferer.addr);
+    vault721.setApprovalForAll(address(conduitController), true);
+
+    // Set fuzzMirrorOfferer as the zone's expected offer recipient.
+    // zone.setExpectedOfferRecipient(fuzzMirrorOfferer.addr);
+
+    // Create the orders and fulfuillments.
+    (infra.orders, infra.fulfillments) = _buildOrdersAndFulfillmentsMirrorOrdersFromFuzzArgs(context);
+
+    uint256[] memory safes = safeManager.getSafes(fuzzPrimeProxy);
+    //lock collateral
+    for (uint256 i; i < safes.length; i++) {
+      vm.prank(fuzzPrimeOfferer.addr);
+      depositCollat(TKN, safes[i], context.matchArgs.collateralAmount / safes.length, fuzzPrimeProxy);
+    }
+
+    // Set up the advanced orders array.
+    infra.advancedOrders = new AdvancedOrder[](infra.orders.length);
+    // Convert the orders to advanced orders.
+    for (uint256 i = 0; i < infra.orders.length; i++) {
+      infra.advancedOrders[i] = infra.orders[i].toAdvancedOrder(1, 1, _getExtraData(context.matchArgs.tokenId));
+    }
+
+    // offerer frees collateral
+    //lock collateral
+    for (uint256 i; i < safes.length; i++) {
+      vm.prank(fuzzPrimeOfferer.addr);
+      freeTokenCollateral(fuzzPrimeProxy, TKN, safes[i], context.matchArgs.collateralAmount / safes.length);
+    }
+
+    //warp to after time delay
+    vm.warp(block.timestamp + vault721.timeDelay());
+
+    //expect revert
+    //empty expect revert because I'm too lazy to calculate the exact amount of extra tax getting pulled
+    // vm.expectRevert(abi.encodeWithSelector(SIP15ZoneEventsAndErrors.InvalidDynamicTraitValue.selector, address(vault721Adapter), safes[0], 3, DEBTKEY, bytes32(context.matchArgs.collateralAmount / 2), bytes32(((context.matchArgs.collateralAmount / 2) + (context.matchArgs.collateralAmount / 8) - 99513020104531))));
+    vm.expectRevert();
+    // Make the call to Seaport.
+
+    context.seaport.matchAdvancedOrders{
+      value: (context.matchArgs.amount * context.matchArgs.orderPairCount) + context.matchArgs.excessNativeTokens
+    }(
+      infra.advancedOrders,
+      infra.criteriaResolvers,
+      infra.fulfillments,
+      // If shouldSpecifyUnspentOfferItemRecipient is true, send the
+      // unspent offer items to the recipient specified by the fuzz args.
+      // Otherwise, pass in the zero address, which will result in the
+      // unspent offer items being sent to the caller.
+      context.matchArgs.shouldSpecifyUnspentOfferItemRecipient
+        ? address(context.matchArgs.unspentPrimeOfferItemRecipient)
+        : address(0)
+    );
+    assertEq(vault721.balanceOf(fuzzPrimeOfferer.addr), safes.length);
   }
 
   function execMatchAdvancedOrders_Revert_DebtIncrease(Context memory context) external stateless {
