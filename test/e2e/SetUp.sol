@@ -93,4 +93,17 @@ contract SetUp is DeployForTest, ODTest, BaseOrderTest {
     );
     ODProxy(_proxy).execute(address(basicActions), payload);
   }
+
+  function repayAllDebt(uint256 _safeId, address proxy) public {
+    bytes memory payload =
+      abi.encodeWithSelector(basicActions.repayAllDebt.selector, address(safeManager), address(coinJoin), _safeId);
+    ODProxy(proxy).execute(address(basicActions), payload);
+  }
+
+  function repayDebt(uint256 _safeId, uint256 _deltaWad, address proxy) public {
+    bytes memory payload = abi.encodeWithSelector(
+      basicActions.repayDebt.selector, address(safeManager), address(coinJoin), _safeId, _deltaWad
+    );
+    ODProxy(proxy).execute(address(basicActions), payload);
+  }
 }

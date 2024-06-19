@@ -228,15 +228,51 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     try fn(context) {
       fail();
     } catch (bytes memory reason) {
-      // assertPass(reason);
+      assertPass(reason);
     }
   }
 
   function testMatchAdvancedOrdersFuzz(MatchFuzzInputs memory matchArgs) public {
-    vm.skip(true);
     // Avoid weird overflow issues.
     matchArgs.amount = uint128(bound(matchArgs.amount, 1, 0xffffffffffffffff));
     matchArgs.collateralAmount = uint128(bound(matchArgs.collateralAmount, 1, 0xffffffffffffffff));
+    // Avoid trying to mint the same token.
+    matchArgs.tokenId = vault721.totalSupply() + 1;
+    matchArgs.shouldUseTransferValidationZoneForPrime = true;
+    // Make 1-8 order pairs per call.  Each order pair will have 1-2 offer
+    // items on the prime side (depending on whether
+    // shouldIncludeExcessOfferItems is true or false).
+    matchArgs.orderPairCount = bound(matchArgs.orderPairCount, 1, 8);
+    // Use 1-3 (prime) consideration items per order.
+    matchArgs.considerationItemsPerPrimeOrderCount = bound(matchArgs.considerationItemsPerPrimeOrderCount, 1, 3);
+    // To put three items in the consideration, native tokens must be
+    // included.
+    matchArgs.shouldIncludeNativeConsideration =
+      matchArgs.shouldIncludeNativeConsideration || matchArgs.considerationItemsPerPrimeOrderCount >= 3;
+    // Only include an excess offer item when NOT using the transfer
+    // validation zone or the zone will revert.
+    matchArgs.shouldIncludeExcessOfferItems = matchArgs.shouldIncludeExcessOfferItems
+      && !(matchArgs.shouldUseTransferValidationZoneForPrime || matchArgs.shouldUseTransferValidationZoneForMirror);
+    // Include some excess native tokens to check that they're ending up
+    // with the caller afterward.
+    matchArgs.excessNativeTokens = uint128(bound(matchArgs.excessNativeTokens, 0, 0xfffffffffffffffffffffffffffff));
+    // Don't set the offer recipient to the null address, because that's the
+    // way to indicate that the caller should be the recipient.
+    matchArgs.unspentPrimeOfferItemRecipient = _nudgeAddressIfProblematic(
+      address(uint160(bound(uint160(matchArgs.unspentPrimeOfferItemRecipient), 1, type(uint160).max)))
+    );
+
+    matchArgs.zoneHash = _getZoneHash(_getExtraData(matchArgs.tokenId));
+
+    test(this.execMatchAdvancedOrdersFuzz, Context(consideration, emptyFulfill, matchArgs));
+    test(this.execMatchAdvancedOrdersFuzz, Context(referenceConsideration, emptyFulfill, matchArgs));
+  }
+
+  function testMatchAdvancedOrdersFuzz_Reverts(MatchFuzzInputs memory matchArgs) public {
+    // Avoid weird overflow issues.
+    matchArgs.amount = uint128(bound(matchArgs.amount, 1, 0xffffffffffffffff));
+    matchArgs.collateralAmount = uint128(bound(matchArgs.collateralAmount, 0.5 ether, 0xffffffffffffffff));
+    matchArgs.shouldUseTransferValidationZoneForPrime = true;
     // Avoid trying to mint the same token.
     matchArgs.tokenId = vault721.totalSupply() + 1;
     // Make 1-8 order pairs per call.  Each order pair will have 1-2 offer
@@ -264,16 +300,11 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
 
     matchArgs.zoneHash = _getZoneHash(_getExtraData(matchArgs.tokenId));
 
-    // TODO: REMOVE: I probably need to create an array of addresses with
-    // dirty balances and an array of addresses that are contracts that
-    // cause problems with native token transfers.
-
-    test(this.execMatchAdvancedOrdersFuzz, Context(consideration, emptyFulfill, matchArgs));
-    test(this.execMatchAdvancedOrdersFuzz, Context(referenceConsideration, emptyFulfill, matchArgs));
     testFail(this.execMatchAdvancedOrders_Revert_DebtIncrease, Context(consideration, emptyFulfill, matchArgs));
   }
 
   function execMatchAdvancedOrdersFuzz(Context memory context) external stateless {
+    context.matchArgs.shouldIncludeExcessOfferItems = false;
     // Set up the infrastructure for this function in a struct to avoid
     // stack depth issues.
     MatchAdvancedOrdersInfra memory infra = MatchAdvancedOrdersInfra({
@@ -287,17 +318,12 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
       primeOffererBalanceAfter: 0
     });
 
-    // note fuzzer kept passing empty strings for prime and mirror,
-    // since safe manager will not transfer a safe to the same address
-    // I had to ensure they were different
     context.matchArgs.mirrorOfferer = 'mirrorOfferer';
-    // TODO: (Someday) See if the stack can tolerate fuzzing criteria
-    // resolvers.
     // The prime offerer is offering NFTs and considering ERC20/Native.
     fuzzPrimeOfferer = makeAndAllocateAccount(context.matchArgs.primeOfferer);
     // The mirror offerer is offering ERC20/Native and considering NFTs.
     fuzzMirrorOfferer = makeAndAllocateAccount(context.matchArgs.mirrorOfferer);
-
+    //  fuzzMirrorOfferer.addr = address(uint160(bound(uint160(fuzzPrimeOfferer.addr), 1, type(uint160).max)));
     vm.assume(fuzzPrimeOfferer.addr != fuzzMirrorOfferer.addr);
 
     fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
@@ -455,8 +481,6 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
       primeOffererBalanceBefore: 0,
       primeOffererBalanceAfter: 0
     });
-
-    // TODO: (Someday) See if the stack can tolerate fuzzing criteria
     // resolvers.
     context.matchArgs.mirrorOfferer = 'mirrorOfferer';
     // The prime offerer is offering NFTs and considering ERC20/Native.
@@ -509,10 +533,6 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     //empty expect revert because I'm too lazy to calculate the exact amount of extra tax getting pulled
     // vm.expectRevert(abi.encodeWithSelector(SIP15ZoneEventsAndErrors.InvalidDynamicTraitValue.selector, address(vault721Adapter), safes[0], 3, DEBTKEY, bytes32(context.matchArgs.collateralAmount / 2), bytes32(((context.matchArgs.collateralAmount / 2) + (context.matchArgs.collateralAmount / 8) - 99513020104531))));
     vm.expectRevert();
-
-    // Store the native token balances before the call for later reference.
-    infra.callerBalanceBefore = address(this).balance;
-    infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
     // Make the call to Seaport.
 
     context.seaport.matchAdvancedOrders{
@@ -529,6 +549,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
         ? address(context.matchArgs.unspentPrimeOfferItemRecipient)
         : address(0)
     );
+    assertEq(vault721.balanceOf(fuzzPrimeOfferer.addr), safes.length);
   }
 
   function _buildOrdersFromFuzzArgs(
