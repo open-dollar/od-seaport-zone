@@ -34,7 +34,7 @@ import {
   OrderType
 } from 'seaport-types/src/lib/ConsiderationStructs.sol';
 import {ConsiderationInterface} from 'seaport-types/src/interfaces/ConsiderationInterface.sol';
-import {CreateZoneParams} from '../lib/CreateZoneParams.sol';
+import {CreateZoneParams} from './CreateZoneParams.sol';
 
 contract SIP15Decoder_Unit_test is CreateZoneParams {
   using OfferItemLib for OfferItem;
@@ -60,7 +60,7 @@ contract SIP15Decoder_Unit_test is CreateZoneParams {
     ).withSalt(0).saveDefault(SINGLE_721_Order);
   }
 
-  function test_DecodeSubstandard1Efficient(Context memory context) public {
+  function test_DecodeSubstandard1EfficientFuzz(Context memory context) public {
     ZoneParameters memory zoneParams = _createZoneParams(context);
     bytes memory encodedData = SIP15Encoder.encodeSubstandard1Efficient(zoneParams, context.fuzzInputs.traitKey);
     (uint8 comparisonEnum, address token, uint256 id, bytes32 traitValue, bytes32 traitKey) =
@@ -72,7 +72,7 @@ contract SIP15Decoder_Unit_test is CreateZoneParams {
     assertEq(id, zoneParams.consideration[0].identifier);
   }
 
-  function test_DecodeSubstandard1(Context memory context) public {
+  function test_DecodeSubstandard1Fuzz(Context memory context) public {
     ZoneParameters memory zoneParams = _createZoneParams(context);
     bytes memory encodedData = SIP15Encoder.encodeSubstandard1(
       zoneParams, context.fuzzInputs.comparisonEnum, context.fuzzInputs.traitValue, context.fuzzInputs.traitKey
@@ -86,7 +86,7 @@ contract SIP15Decoder_Unit_test is CreateZoneParams {
     assertEq(id, zoneParams.offer[0].identifier);
   }
 
-  function test_DecodeSubstandard2(Context memory context) public {
+  function test_DecodeSubstandard2Fuzz(Context memory context) public {
     ZoneParameters memory zoneParams = _createZoneParams(context);
     bytes memory encodedData = SIP15Encoder.encodeSubstandard2(
       zoneParams, context.fuzzInputs.comparisonEnum, context.fuzzInputs.traitValue, context.fuzzInputs.traitKey
@@ -100,7 +100,7 @@ contract SIP15Decoder_Unit_test is CreateZoneParams {
     assertEq(id, zoneParams.consideration[0].identifier);
   }
 
-  function test_DecodeSubstandard3(Context memory context) public {
+  function test_DecodeSubstandard3Fuzz(Context memory context) public {
     bytes memory encodedData = SIP15Encoder.encodeSubstandard3(
       context.fuzzInputs.comparisonEnum,
       context.fuzzInputs.token,
@@ -117,7 +117,7 @@ contract SIP15Decoder_Unit_test is CreateZoneParams {
     assertEq(id, context.fuzzInputs.tokenId);
   }
 
-  function test_DecodeSubstandard4(Context memory context) public {
+  function test_DecodeSubstandard4Fuzz(Context memory context) public {
     uint256[] memory tokenIds = new uint256[](2);
     tokenIds[0] = context.fuzzInputs.tokenId;
     tokenIds[1] = context.fuzzInputs.tokenId2;
@@ -139,7 +139,7 @@ contract SIP15Decoder_Unit_test is CreateZoneParams {
     assertEq(ids[1], context.fuzzInputs.tokenId2);
   }
 
-  function test_DecodeSubstandard5(Context memory context) public {
+  function test_DecodeSubstandard5Fuzz(Context memory context) public {
     uint8[] memory _compEnums = new uint8[](2);
     _compEnums[0] = context.fuzzInputs.comparisonEnum;
     _compEnums[1] = 70;

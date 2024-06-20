@@ -21,7 +21,7 @@ import {
   OrderType
 } from 'seaport-types/src/lib/ConsiderationStructs.sol';
 import {ConsiderationInterface} from 'seaport-types/src/interfaces/ConsiderationInterface.sol';
-import {CreateZoneParams} from '../lib/CreateZoneParams.sol';
+import {CreateZoneParams} from './CreateZoneParams.sol';
 
 contract SIP15Encoder_Unit_test is CreateZoneParams {
   using OfferItemLib for OfferItem;
