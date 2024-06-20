@@ -37,7 +37,7 @@ library SIP15Encoder {
 
     // Get the id from the first consideration item
     uint256 id = zoneParameters.consideration[0].identifier;
-    return abi.encodePacked(uint8(0), abi.encode(0, token, id, traitKey, bytes32(0)));
+    return abi.encodePacked(uint8(0x00), abi.encode(0, token, id, bytes32(0), traitKey));
   }
 
   /**
@@ -58,7 +58,7 @@ library SIP15Encoder {
 
     // Get the id from the first offer item
     uint256 id = zoneParameters.offer[0].identifier;
-    return abi.encodePacked(uint8(0x01), abi.encode(comparisonEnum, token, id, traitKey, traitValue));
+    return abi.encodePacked(uint8(0x01), abi.encode(comparisonEnum, token, id, traitValue, traitKey));
   }
 
   /**

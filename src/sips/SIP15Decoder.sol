@@ -26,7 +26,7 @@ library SIP15Decoder {
     pure
     returns (uint8, address, uint256, bytes32, bytes32)
   {
-    return _decodeSingleTraitsWithOffset(extraData, 0);
+    return _decodeSingleTraitsWithOffset(extraData, 1);
   }
 
   function decodeSubstandard2(bytes calldata extraData)
@@ -60,7 +60,11 @@ library SIP15Decoder {
   function _decodeSingleTraitsWithOffset(
     bytes calldata extraData,
     uint256 sip15DataStartRelativeOffset
-  ) internal pure returns (uint8, address, uint256, bytes32, bytes32) {
+  )
+    internal
+    pure
+    returns (uint8 comparisonEnum, address token, uint256 identifier, bytes32 traitValue, bytes32 traitKey)
+  {
     return abi.decode(extraData[sip15DataStartRelativeOffset:], (uint8, address, uint256, bytes32, bytes32));
   }
 }

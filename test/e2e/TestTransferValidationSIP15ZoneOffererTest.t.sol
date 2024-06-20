@@ -48,8 +48,11 @@ import {IODSafeManager} from '@opendollar/interfaces/proxies/IODSafeManager.sol'
 import {SIP15ZoneEventsAndErrors} from '../../src/interfaces/SIP15ZoneEventsAndErrors.sol';
 import {SIP15Zone} from '../../src/contracts/SIP15Zone.sol';
 import {SIP15Encoder, Substandard5Comparison} from '../../src/sips/SIP15Encoder.sol';
+import {Math, RAY, WAD} from '@opendollar/libraries/Math.sol';
+import 'forge-std/console2.sol';
 
 contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
+  using Math for uint256;
   using FulfillmentLib for Fulfillment;
   using FulfillmentComponentLib for FulfillmentComponent;
   using FulfillmentComponentLib for FulfillmentComponent[];
@@ -103,6 +106,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
       // fill in consideration later
       .saveDefault(VALIDATION_ZONE);
     // fill in counter later
+    vm.label(address(collateral[TKN]), 'TKN');
   }
 
   struct Context {
@@ -330,16 +334,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
     fuzzMirrorProxy = deployOrFind(fuzzMirrorOfferer.addr);
 
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(conduit), true);
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(referenceConsideration), true);
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(referenceConduit), true);
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(consideration), true);
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(conduitController), true);
+    _setApprovals(fuzzPrimeOfferer.addr, context);
 
     // Set fuzzMirrorOfferer as the zone's expected offer recipient.
     // zone.setExpectedOfferRecipient(fuzzMirrorOfferer.addr);
@@ -494,16 +489,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
     fuzzMirrorProxy = deployOrFind(fuzzMirrorOfferer.addr);
 
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(conduit), true);
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(referenceConsideration), true);
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(referenceConduit), true);
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(consideration), true);
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(conduitController), true);
+    _setApprovals(fuzzPrimeOfferer.addr, context);
 
     // Set fuzzMirrorOfferer as the zone's expected offer recipient.
     // zone.setExpectedOfferRecipient(fuzzMirrorOfferer.addr);
@@ -512,11 +498,6 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     (infra.orders, infra.fulfillments) = _buildOrdersAndFulfillmentsMirrorOrdersFromFuzzArgs(context);
 
     uint256[] memory safes = safeManager.getSafes(fuzzPrimeProxy);
-    //lock collateral
-    for (uint256 i; i < safes.length; i++) {
-      vm.prank(fuzzPrimeOfferer.addr);
-      depositCollat(TKN, safes[i], context.matchArgs.collateralAmount / safes.length, fuzzPrimeProxy);
-    }
 
     // Set up the advanced orders array.
     infra.advancedOrders = new AdvancedOrder[](infra.orders.length);
@@ -528,8 +509,10 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     // offerer frees collateral
     //lock collateral
     for (uint256 i; i < safes.length; i++) {
-      vm.prank(fuzzPrimeOfferer.addr);
-      freeTokenCollateral(fuzzPrimeProxy, TKN, safes[i], context.matchArgs.collateralAmount / safes.length);
+      vm.startPrank(fuzzPrimeOfferer.addr);
+      repayDebt(safes[i], (systemCoin.balanceOf(fuzzPrimeOfferer.addr) / safes.length), fuzzPrimeProxy);
+      freeTokenCollateral(fuzzPrimeProxy, TKN, safes[i], (context.matchArgs.collateralAmount / (safes.length * 2)));
+      vm.stopPrank();
     }
 
     //warp to after time delay
@@ -537,8 +520,22 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
 
     //expect revert
     //empty expect revert because I'm too lazy to calculate the exact amount of extra tax getting pulled
-    // vm.expectRevert(abi.encodeWithSelector(SIP15ZoneEventsAndErrors.InvalidDynamicTraitValue.selector, address(vault721Adapter), safes[0], 3, DEBTKEY, bytes32(context.matchArgs.collateralAmount / 2), bytes32(((context.matchArgs.collateralAmount / 2) + (context.matchArgs.collateralAmount / 8) - 99513020104531))));
+    (uint256 accumulatedRate, int256 deltaRate) = taxCollector.taxSingleOutcome(TKN);
     vm.expectRevert();
+    // vm.expectRevert(
+    //   abi.encodeWithSelector(
+    //     SIP15ZoneEventsAndErrors.InvalidDynamicTraitValue.selector,
+    //     address(vault721Adapter),
+    //     safes[0],
+    //     3,
+    //     DEBTKEY,
+    //     bytes32(context.matchArgs.collateralAmount / 2),
+    //     bytes32(
+    //       ((context.matchArgs.collateralAmount / 2) + (context.matchArgs.collateralAmount / 8) - uint256(-deltaRate))
+    //     )
+    //   )
+    // );
+    // vm.expectRevert();
     // Make the call to Seaport.
 
     context.seaport.matchAdvancedOrders{
@@ -556,6 +553,26 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
         : address(0)
     );
     assertEq(vault721.balanceOf(fuzzPrimeOfferer.addr), safes.length);
+  }
+
+  function _setApprovals(address approver, Context memory context) internal {
+    vm.startPrank(approver);
+    vault721.setApprovalForAll(address(conduit), true);
+    vault721.setApprovalForAll(address(referenceConsideration), true);
+    vault721.setApprovalForAll(address(referenceConduit), true);
+    vault721.setApprovalForAll(address(consideration), true);
+    vault721.setApprovalForAll(address(conduitController), true);
+    collateral[TKN].approve(address(conduit), type(uint256).max);
+    collateral[TKN].approve(address(referenceConsideration), type(uint256).max);
+    collateral[TKN].approve(address(referenceConduit), type(uint256).max);
+    collateral[TKN].approve(address(consideration), type(uint256).max);
+    collateral[TKN].approve(address(conduitController), type(uint256).max);
+    collateral[TKN].approve(fuzzPrimeProxy, type(uint256).max);
+    collateral[TKN].approve(fuzzMirrorProxy, type(uint256).max);
+    collateral[TKN].approve(fuzzPrimeProxy, type(uint256).max);
+    systemCoin.approve(fuzzPrimeProxy, type(uint256).max);
+    // collateral[TKN].approve(collateralJoinChild, context.matchArgs.collateralAmount);
+    vm.stopPrank();
   }
 
   function execMatchAdvancedOrders_Revert_DebtIncrease(Context memory context) external stateless {
@@ -584,16 +601,7 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     fuzzPrimeProxy = deployOrFind(fuzzPrimeOfferer.addr);
     fuzzMirrorProxy = deployOrFind(fuzzMirrorOfferer.addr);
 
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(conduit), true);
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(referenceConsideration), true);
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(referenceConduit), true);
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(consideration), true);
-    vm.prank(fuzzPrimeOfferer.addr);
-    vault721.setApprovalForAll(address(conduitController), true);
+    _setApprovals(fuzzPrimeOfferer.addr, context);
 
     // Set fuzzMirrorOfferer as the zone's expected offer recipient.
     // zone.setExpectedOfferRecipient(fuzzMirrorOfferer.addr);
@@ -621,8 +629,24 @@ contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
     vm.warp(block.timestamp + vault721.timeDelay());
 
     //expect revert
+
     //empty expect revert because I'm too lazy to calculate the exact amount of extra tax getting pulled
-    // vm.expectRevert(abi.encodeWithSelector(SIP15ZoneEventsAndErrors.InvalidDynamicTraitValue.selector, address(vault721Adapter), safes[0], 3, DEBTKEY, bytes32(context.matchArgs.collateralAmount / 2), bytes32(((context.matchArgs.collateralAmount / 2) + (context.matchArgs.collateralAmount / 8) - 99513020104531))));
+    // vm.expectRevert(
+    //   abi.encodeWithSelector(
+    //     SIP15ZoneEventsAndErrors.InvalidDynamicTraitValue.selector,
+    //     address(vault721Adapter),
+    //     safes[0],
+    //     3,
+    //     DEBTKEY,
+    //     bytes32(context.matchArgs.collateralAmount / 2),
+    //     bytes32(
+    //       (
+    //         (context.matchArgs.collateralAmount / 2) + (context.matchArgs.collateralAmount / 8)
+    //           - taxes)
+
+    //     )
+    //   )
+    // );
     vm.expectRevert();
     // Make the call to Seaport.
 
