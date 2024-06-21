@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {DeployForTest, ODTest, COLLAT, DEBT, TKN} from '@opendollar/test/e2e/Common.t.sol';
+import {DeployForTest, ODTest, TKN} from '@opendollar/test/e2e/Common.t.sol';
 import {ERC20ForTest} from '@opendollar/test/mocks/ERC20ForTest.sol';
 import {ISAFEEngine} from '@opendollar/interfaces/ISAFEEngine.sol';
 import {BaseOrderTest} from 'seaport/test/foundry/utils/BaseOrderTest.sol';

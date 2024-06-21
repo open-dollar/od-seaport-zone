@@ -7,14 +7,13 @@ import {
   CriteriaResolver,
   Fulfillment,
   FulfillmentComponent,
-  OrderParameters,
   ItemType,
   OfferItem,
   Order,
   OrderComponents,
   OrderType
 } from 'seaport-types/src/lib/ConsiderationStructs.sol';
-import {DeployForTest, ODTest, COLLAT, DEBT, TKN} from '@opendollar/test/e2e/Common.t.sol';
+import {ODTest, COLLAT, DEBT, TKN} from '@opendollar/test/e2e/Common.t.sol';
 
 import {UnavailableReason} from 'seaport-sol/src/SpaceEnums.sol';
 import {BaseOrderTest} from 'seaport/test/foundry/utils/BaseOrderTest.sol';
@@ -49,7 +48,6 @@ import {SIP15ZoneEventsAndErrors} from '../../src/interfaces/SIP15ZoneEventsAndE
 import {SIP15Zone} from '../../src/contracts/SIP15Zone.sol';
 import {SIP15Encoder, Substandard5Comparison} from '../../src/sips/SIP15Encoder.sol';
 import {Math, RAY, WAD} from '@opendollar/libraries/Math.sol';
-import 'forge-std/console2.sol';
 
 contract TestTransferValidationSIP15ZoneOffererTest is SetUp {
   using Math for uint256;

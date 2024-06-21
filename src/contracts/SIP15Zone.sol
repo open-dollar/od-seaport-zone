@@ -12,10 +12,10 @@ import {SIP15ZoneEventsAndErrors} from '../interfaces/SIP15ZoneEventsAndErrors.s
 import {ISIP15Zone} from '../interfaces/ISIP15Zone.sol';
 
 /**
- * @title  ODSeaportZone
+ * @title  SIP15Zone
  * @author MrDeadce11 & stephankmin
- * @notice SIP15Zone is an implementation of SIP-15. It verifies that the dynamic traits of an NFT
- *         have not changed between the time of order creation and the time of order fulfillment.
+ * @notice SIP15Zone is an implementation of SIP-15. It verifies the state of dynamic traits after a transfer.
+ * it can be used with substandards 1-5.  see Substandard documentation here https://github.com/open-dollar/SIPs/blob/main/SIPS/sip-15.md
  */
 contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
   using SIP15Decoder for bytes;
@@ -25,7 +25,7 @@ contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
   constructor() {}
 
   /**
-   * @dev Validates an order.
+   * @dev Validates an order. called after order is fulfilled and offers and considerations have been transfered
    *
    * @param zoneParameters The context about the order fulfillment and any
    *                       supplied extraData.
@@ -55,6 +55,10 @@ contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
     return this.validateOrder.selector;
   }
 
+  /**
+   * @dev called before order fulfillment. no authorization is required for this zone.
+   * @return authorizedOrderMagicValue the bytes4 magic order value that authorizes the order
+   */
   function authorizeOrder(ZoneParameters calldata /* zoneParameters*/ )
     external
     view
@@ -62,6 +66,10 @@ contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
   {
     return this.authorizeOrder.selector;
   }
+  /**
+   * @dev decodes extraData acording to the substandard and then checks the traits according to
+   * the designated comparison enum/enums.  See SIP15encoder for encoding details.
+   */
 
   function _validateSubstandard(uint8 substandardVersion, bytes calldata extraData) internal view {
     address token;
