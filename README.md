@@ -13,13 +13,13 @@
 
 # Dynamic Traits Enforcement Zone
 
-A Seaport zone for specifying and enforcing values of ERC-7496 Dynamic Traits
+A Seaport zone which implements [ERC-7496](https://eips.ethereum.org/EIPS/eip-7496) to enforce NFT trait details.
 
-View the SIP-15 standard: https://github.com/open-dollar/SIPs/blob/main/SIPS/sip-15.md
+The zone was developed to align with the [SIP-15](https://github.com/open-dollar/SIPs/blob/main/SIPS/sip-15.md) standard from Seaport.
 
 ## Setup
 
-To use the order creator and fulfiller scripts in order to use the SIP15 zone to check traits on OpenDollar vaults after transfer do these things:
+Use the command-line scripts to create, submit, and fulfill an order for an Open Dollar NFV, using the OpenSea API.
 
 1. Copy the `.env.example` and update the following values:
 
@@ -34,22 +34,31 @@ ARB_SEPOLIA_BUYER_PK=
 
 3. User the “Buyer” wallet to mint the consideration token "ARB" at https://sepolia.arbiscan.io/address/0x3018EC2AD556f28d2c0665d10b55ebfa469fD749#writeContract
 
-## Create listing
+## Create Listing
+
+Use the `create-listing` scrip to create an order from the "Offerer" wallet.
 
 ```bash
+# Install and build the contracts
 yarn
 yarn build
 
-# Create Listing
 yarn create-listing <chainName> <tokenId> <considerationAmountInEther>
+# eg.
 yarn create-listing sepolia 313 0.000001
+```
 
-# Execute listing
+## Fulfill Order
+
+Use the fulfill script to execute the order from the "Buyer" wallet.
+
+```bash
 yarn fulfill <chainName> <orderPath>
+# eg. 
 yarn fulfill sepolia orders/order-1-1718667016.json
 ```
 
-Notes:
+Important Notes:
 
-- Vaults have a 100 second cooldown on testnet before they can be transferred.
-- Order `endTime` is 24 hours
+- On testnet, Open Dollar NFVs have a 100 second cooldown after any modification before they can be transferred.
+- The default order `endTime` is currently 24 hours.

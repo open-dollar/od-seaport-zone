@@ -12,10 +12,10 @@ import {SIP15ZoneEventsAndErrors} from '../interfaces/SIP15ZoneEventsAndErrors.s
 import {ISIP15Zone} from '../interfaces/ISIP15Zone.sol';
 
 /**
- * @title  SIP15Zone
- * @author MrDeadce11 & stephankmin
- * @notice SIP15Zone is an implementation of SIP-15. It verifies the state of dynamic traits after a transfer.
- * it can be used with substandards 1-5.  see Substandard documentation here https://github.com/open-dollar/SIPs/blob/main/SIPS/sip-15.md
+ * @title  DynamicTraitsEnforcementZone
+ * @author MrDeadCe11, daopunk, pi0neerpat, CupOJoseph, stephankmin
+ * @notice DynamicTraitsEnforcementZone is an implementation of SIP-15 for enforcing ERC-7496 traits. It verifies the state of
+ * dynamic traits after a transfer and supports substandards 1 through 5. Substandard docs: https://github.com/open-dollar/SIPs/blob/main/SIPS/sip-15.md
  */
 contract SIP15Zone is ERC165, ISIP15Zone, SIP15ZoneEventsAndErrors {
   using SIP15Decoder for bytes;

@@ -7,7 +7,7 @@ import {IERC7496} from 'shipyard-core/src/dynamic-traits/interfaces/IERC7496.sol
 import {IERC721} from '@openzeppelin/token/ERC721/IERC721.sol';
 /**
  * @title Adds support for ERC7496 to an existing ERC721
- * @author OpenFi Foundation
+ * @author MrDeadCe11, daopunk, pi0neerpat, CupOJoseph
  * @notice IERC7496 events are never emitted since NFVState is tracked in Vault721
  */
 
